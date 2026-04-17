@@ -4,146 +4,147 @@ namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
 
 class PembayaranController extends Controller
 {
-    private $stat = 13;
+    private function baseTransactionQuery()
+    {
+        return DB::table('transaksi as tr')
+            ->leftJoin('tagihan as t', 't.id', '=', 'tr.tagihan_id')
+            ->leftJoin('tagihan_user as tu', function ($join) {
+                $join->on('tu.tagihan_id', '=', 'tr.tagihan_id')
+                    ->on('tu.user_id', '=', 'tr.user_id');
+            })
+            ->leftJoin('users as u', 'u.id', '=', 'tr.user_id')
+            ->leftJoin('pelanggan as p', 'p.id', '=', 'u.idPersonal')
+            ->select([
+                'tr.id',
+                'tr.order_id',
+                'tr.status',
+                'tr.amount',
+                'tr.metode',
+                'tr.tagihan_id',
+                'tr.user_id',
+                'tr.snap_token',
+                'tr.payment_url',
+                'tr.created_at as transaksi_created_at',
+                'tr.updated_at as transaksi_updated_at',
+                't.nama_tagihan',
+                't.nominal as tagihan_nominal',
+                't.tipe',
+                't.jatuh_tempo',
+                'u.username',
+                'u.email',
+                'p.nama as pelanggan_nama',
+                'p.no_wa as pelanggan_no_wa',
+                'tu.status as assignment_status',
+                'tu.payment_id',
+            ]);
+    }
 
     public function index()
     {
-        $pembayaranSewa = DB::select('CALL viewAll_pembayaranSewa()');
+        $pembayaranSewa = $this->baseTransactionQuery()
+            ->whereIn('tr.id', function ($subQuery) {
+                $subQuery->from('transaksi as trx_latest')
+                    ->selectRaw('MAX(trx_latest.id)')
+                    ->groupBy('trx_latest.user_id', 'trx_latest.tagihan_id');
+            })
+            ->orderByDesc('tr.id')
+            ->get();
 
         return view('admin.TagihanDanPembayaran.Pembayaran.index', compact('pembayaranSewa'));
-
     }
 
     public function uploadBukti(Request $request)
     {
-        //dd($request->all());
-        $idTagihan = $request->input('idTagihan');
-
-        $detailTagihan = [];
-
-        for ($count = 0; $count < collect($idTagihan)->count(); $count++) {
-
-            $detailTagihan[] = [
-                'idTagihan' => $idTagihan[$count]
-            ];
-        }
-
-        $dataTagihanTemp = json_encode([
-            'idPembayaran' => $request->get('idPembayaranSewa'), 
-            'detailPembayaran' =>  $detailTagihan
-        ]);
-
-        $dataTagihan = json_decode($dataTagihanTemp);
-
-        //dd($dataTagihan);
-        return view('admin.TagihanDanPembayaran.Pembayaran.uploadBukti', compact('dataTagihan'));
+        return redirect()->route('Pembayaran.index')->with('error', 'Upload bukti manual tidak tersedia pada schema pembayaran aktif.');
     }
 
     public function storeBukti(Request $request)
     {
-        //dd($request->all());
-
-        if ($request->hasFile('fileBukti')) {
-            //dd($request->file('fileSuratPerjanjian'));
-            $uploadedFile = $request->file('fileBukti');
-            $filePenilaian = $request->get('idPembayaranSewa') . "-" . time() . "." . $uploadedFile->getClientOriginalExtension();
-            $filePath = Storage::disk('biznet')->putFileAs("images/BuktiBayar", $uploadedFile, $filePenilaian);
-        }else{
-            $filePath="";
-        }
-
-        $idTagihan = $request->input('idTagihan');
-
-        $detailTagihan = [];
-
-        for ($count = 0; $count < collect($idTagihan)->count(); $count++) {
-
-            $detailTagihan[] = [
-                'idTagihan' => $idTagihan[$count]
-            ];
-        }
-
-        $dataPembayaran = json_encode([
-            'IdPembayaran' => $request->get('idPembayaranSewa'), 
-            'NamaBank' => $request->get('namaBank'), 
-            'NamaPemilikRek' => $request->get('namaPemilikRek'), 
-            'JumlahDana' => $request->get('jumlahDana'), 
-            'Keterangan' => $request->get('keterangan'), 
-            'FileBuktiBayar' => $filePath, 
-            'DetailTagihan' =>  $detailTagihan
-        ]);
-
-        //dd($dataPembayaran);
-
-        $response = DB::statement('CALL insert_BuktiPembayaran(:dataPembayaran)', ['dataPembayaran' => $dataPembayaran]);
-
-        if ($response) {
-            return redirect()->route('Pembayaran.index')->with('success', 'Upload Bukti Bayar Berhasil Ditambahkan!');
-        } else {
-            return redirect()->route('Pembayaran.index')->with('error', 'Upload Bukti Bayar Gagal Disimpan!');
-        }
-
-        //return view('admin.TagihanDanPembayaran.Pembayaran.uploadBukti');
+        return redirect()->route('Pembayaran.index')->with('error', 'Upload bukti manual belum didukung pada pembayaran modern.');
     }
 
     public function detail($id)
     {
-        $headPembayaranData = DB::select('CALL view_pembayaranSewaById(' . $id . ')');
+        $headPembayaran = $this->baseTransactionQuery()
+            ->where('tr.id', $id)
+            ->first();
 
-        if ($headPembayaranData) {
-
-            $headPembayaran = $headPembayaranData[0];
-            //$detailPembayaran = DB::select('CALL view_detailPembayaranByIdPembayaran(' . $id . ')');
-
-            //dd($checkoutDetail);
-
+        if ($headPembayaran) {
             return view('admin.TagihanDanPembayaran.Pembayaran.detail', compact('headPembayaran'));
-        } else {
-            return redirect()->route('Pembayaran.index')->with('error', 'Data Pembayaran Tidak Ditemukan!');
         }
+
+        return redirect()->route('Pembayaran.index')->with('error', 'Data Pembayaran Tidak Ditemukan!');
     }
 
 
     public function verifikasi($id)
     {
-        $headPembayaranData = DB::select('CALL view_detailVerifikasiPembayaran(' . $id . ')');
+        $headPembayaran = $this->baseTransactionQuery()
+            ->where('tr.id', $id)
+            ->first();
 
-        if ($headPembayaranData) {
-
-            $headPembayaran = $headPembayaranData[0];
-            //$detailPembayaran = DB::select('CALL view_detailPembayaranByIdPembayaran(' . $id . ')');
-
-            //dd($checkoutDetail);
-
+        if ($headPembayaran) {
             return view('admin.TagihanDanPembayaran.Pembayaran.verifikasi', compact('headPembayaran'));
-        } else {
-            return redirect()->route('Pembayaran.index')->with('error', 'Data Pembayaran Tidak Ditemukan!');
         }
+
+        return redirect()->route('Pembayaran.index')->with('error', 'Data Pembayaran Tidak Ditemukan!');
     }
 
     public function storeVerifikasi(Request $request)
     {
-        //dd($request->all());
-
-        $dataVerifikasi= json_encode([
-            'IdPembayaran' => $request->get('idPembayaran'), 
-            'Keterangan' =>  $request->get('keterangan')
+        $validated = $request->validate([
+            'idPembayaran' => ['required', 'integer', 'exists:transaksi,id'],
+            'status' => ['required', 'in:pending,success,failed,expired'],
+            'keterangan' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $response = DB::statement('CALL update_verifikasiPembayaran(:dataVerifikasi)', ['dataVerifikasi' => $dataVerifikasi]);
+        DB::table('transaksi')->where('id', $validated['idPembayaran'])->update([
+            'status' => $validated['status'],
+            'updated_at' => now(),
+        ]);
 
-        if ($response) {
-            return redirect()->route('Pembayaran.index')->with('success', 'Pembayaran Sewa Berhasil Diverifikasi!');
-        } else {
-            return redirect()->route('Pembayaran.index')->with('error', 'Pembayaran Sewa Gagal Diverifikasi!');
+        $trx = DB::table('transaksi')->where('id', $validated['idPembayaran'])->first();
+
+        if ($trx) {
+            DB::table('tagihan_user')
+                ->where('tagihan_id', $trx->tagihan_id)
+                ->where('user_id', $trx->user_id)
+                ->update([
+                    'status' => $validated['status'] === 'success' ? 'sudah' : 'belum',
+                    'payment_id' => $trx->id,
+                    'updated_at' => now(),
+                ]);
         }
 
+        return redirect()->route('Pembayaran.index')->with('success', 'Status transaksi berhasil diperbarui.');
+
+    }
+
+    public function destroy($id)
+    {
+        $trx = DB::table('transaksi')->where('id', $id)->first();
+
+        if (! $trx) {
+            return redirect()->route('Pembayaran.index')->with('error', 'Data transaksi tidak ditemukan.');
+        }
+
+        DB::transaction(function () use ($trx) {
+            DB::table('tagihan_user')
+                ->where('tagihan_id', $trx->tagihan_id)
+                ->where('user_id', $trx->user_id)
+                ->update([
+                    'status' => 'belum',
+                    'payment_id' => null,
+                    'updated_at' => now(),
+                ]);
+
+            DB::table('transaksi')->where('id', $trx->id)->delete();
+        });
+
+        return redirect()->route('Pembayaran.index')->with('success', 'Transaksi pembayaran berhasil dihapus.');
     }
 }

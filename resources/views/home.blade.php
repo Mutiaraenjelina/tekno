@@ -68,13 +68,13 @@
                     <div class="header-element">
                         <div class="horizontal-logo">
                             <a href="index.html" class="header-logo">
-                                <img src="{{ asset('admin_resources/assets/images/brand-logos/desktop-logo.png') }}"
+                                    <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
                                     alt="logo" class="desktop-logo">
-                                <img src="{{ asset('admin_resources/assets/images/brand-logos/toggle-logo.png') }}"
+                                    <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
                                     alt="logo" class="toggle-logo">
-                                <img src="{{ asset('admin_resources/assets/images/brand-logos/desktop-dark.png') }}"
+                                    <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
                                     alt="logo" class="desktop-dark">
-                                <img src="{{ asset('admin_resources/assets/images/brand-logos/toggle-dark.png') }}"
+                                    <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
                                     alt="logo" class="toggle-dark">
                             </a>
                         </div>

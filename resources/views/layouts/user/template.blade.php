@@ -434,8 +434,8 @@
     <nav class="user-navbar navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ route('user.dashboard.index') }}">
-                <i class="ti ti-building-community"></i>
-                TAPATUPA
+                <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
+                    alt="Tapatupa" style="height: 48px; width: auto; display: block;">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#userNavbar"
                 aria-controls="userNavbar" aria-expanded="false" aria-label="Toggle navigation">

@@ -188,20 +188,18 @@
     document.addEventListener('DOMContentLoaded', function() {
         var ctx = document.getElementById('paymentChart');
         if (ctx) {
+            const chartLabels = @json($paymentChart['labels'] ?? ['Belum Ada Pembayaran']);
+            const chartData = @json($paymentChart['data'] ?? [1]);
+            const chartColors = @json($paymentChart['colors'] ?? ['#e9ecef']);
+
             var chart = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Sudah Dibayar', 'Belum Dibayar'],
+                    labels: chartLabels,
                     datasets: [{
-                        data: [{{ $stats->totalBayar ?? 0 }}, {{ $stats->totalBelumBayar ?? 0 }}],
-                        backgroundColor: [
-                            '#28a745',
-                            '#dc3545'
-                        ],
-                        borderColor: [
-                            '#fff',
-                            '#fff'
-                        ],
+                        data: chartData,
+                        backgroundColor: chartColors,
+                        borderColor: chartColors.map(() => '#fff'),
                         borderWidth: 2
                     }]
                 },
