@@ -44,7 +44,7 @@
                     <div class="col-12">
                         <label class="form-label fw-medium">Nama Tagihan <span class="text-danger">*</span></label>
                         <input type="text" name="nama_tagihan" class="form-control @error('nama_tagihan') is-invalid @enderror" 
-                            placeholder="Contoh: Biaya Retribusi Parkir" value="{{ old('nama_tagihan') }}" required>
+                            placeholder="Contoh: Biaya Retribusi" value="{{ old('nama_tagihan') }}" required>
                         @error('nama_tagihan')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

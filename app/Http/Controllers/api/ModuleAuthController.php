@@ -27,16 +27,21 @@ class ModuleAuthController extends Controller
             'no_wa.required_if' => 'No WhatsApp wajib diisi untuk usaha tagihan rutin.',
         ]);
 
-        $pelangganId = null;
+        $namaPelanggan = $validated['jenis_tagihan'] === 'rutin'
+            ? $validated['nama']
+            : $validated['username'];
 
-        if ($validated['jenis_tagihan'] === 'rutin') {
-            $pelangganId = DB::table('pelanggan')->insertGetId([
-                'nama' => $validated['nama'],
-                'no_wa' => $validated['no_wa'],
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
+        $noWaPelanggan = $validated['jenis_tagihan'] === 'rutin'
+            ? $validated['no_wa']
+            : '-';
+
+        // users.idPersonal pada schema aktif wajib terisi.
+        $pelangganId = DB::table('pelanggan')->insertGetId([
+            'nama' => $namaPelanggan,
+            'no_wa' => $noWaPelanggan,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         $user = User::create([
             'roleId' => 3,

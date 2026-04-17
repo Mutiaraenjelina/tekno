@@ -112,14 +112,6 @@
                 </div>
         </div>
 
-        <!-- Info Card -->
-        <div class="user-card mt-3">
-                <h6 class="text-muted fw-bold mb-3">Perlu Bantuan?</h6>
-                <p class="small text-muted mb-3">Jika ada pertanyaan tentang tagihan ini, hubungi customer service kami.</p>
-                <button class="btn btn-sm btn-outline-primary w-100" disabled>
-                    <i class="ti ti-message me-2"></i>Chat dengan Customer Service
-                </button>
-        </div>
     </div>
 </div>
 
