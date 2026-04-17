@@ -29,6 +29,7 @@ class ModulePaymentGatewayController extends Controller
             'tagihan_id' => ['required', 'integer'],
             'user_id' => ['required', 'integer'],
             'amount' => ['required', 'numeric', 'min:0'],
+            'status_url' => ['nullable', 'url'],
         ]);
 
         if (! DB::table('tagihan')->where('id', $validated['tagihan_id'])->exists()) {
@@ -49,6 +50,7 @@ class ModulePaymentGatewayController extends Controller
 
         $user = DB::table('users')->where('id', $validated['user_id'])->first();
         $orderId = 'MID-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(6));
+        $statusUrl = $validated['status_url'] ?? (rtrim($request->root(), '/') . '/tagihan/status');
 
         $payload = [
             'transaction_details' => [
@@ -60,9 +62,9 @@ class ModulePaymentGatewayController extends Controller
                 'email' => $user->email ?? null,
             ],
             'callbacks' => [
-                'finish' => rtrim(config('app.url'), '/') . '/tagihan/status',
-                'error' => rtrim(config('app.url'), '/') . '/tagihan/status',
-                'pending' => rtrim(config('app.url'), '/') . '/tagihan/status',
+                'finish' => $statusUrl,
+                'error' => $statusUrl,
+                'pending' => $statusUrl,
             ],
         ];
 

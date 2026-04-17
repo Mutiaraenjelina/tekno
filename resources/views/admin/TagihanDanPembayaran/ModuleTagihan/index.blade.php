@@ -8,11 +8,14 @@
             <nav>
                 <ol class="breadcrumb breadcrumb-example1 mb-0">
                     <li class="breadcrumb-item"><a href="{{ route('Dashboard.index') }}">Admin</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Tagihan</li>
+                    <li class="breadcrumb-item active" aria-current="page">Daftar Tagihan</li>
                 </ol>
             </nav>
         </div>
     </div>
+    <a href="{{ route('ModuleTagihan.create') }}" class="btn btn-primary">
+        <i class="ti ti-plus me-1"></i>Buat Tagihan
+    </a>
 </div>
 
 @if (session('success'))
@@ -32,15 +35,19 @@
 @endif
 
 <div class="row">
-    <div class="col-xl-12">
+    <div class="col-xl-8">
         <div class="card custom-card border-0 shadow-sm">
             <div class="card-header bg-light border-0 d-flex align-items-center justify-content-between">
                 <h5 class="mb-0">
                     <i class="ti ti-list me-2"></i>Daftar Tagihan
                 </h5>
-                <a href="{{ route('ModuleTagihan.create') }}" class="btn btn-sm btn-primary">
-                    <i class="ti ti-plus me-1"></i>Tambah Tagihan
-                </a>
+                <div>
+                    <select class="form-select form-select-sm" style="width: 180px;">
+                        <option selected>Semua Status</option>
+                        <option>Aktif</option>
+                        <option>Nonaktif</option>
+                    </select>
+                </div>
             </div>
             <div class="card-body">
                 @if($tagihanList->count() > 0)
@@ -48,47 +55,41 @@
                         <table class="table table-hover table-striped align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th width="5%">ID</th>
+                                    <th width="5%">No</th>
                                     <th width="25%">Nama Tagihan</th>
-                                    <th width="15%">Nominal</th>
-                                    <th width="10%">Tipe</th>
+                                    <th width="15%">Jenis</th>
+                                    <th width="15%">Target</th>
                                     <th width="15%">Jatuh Tempo</th>
-                                    <th width="20%">Aksi</th>
+                                    <th width="10%">Status</th>
+                                    <th width="15%">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($tagihanList as $item)
+                                @foreach ($tagihanList as $key => $item)
                                     <tr>
-                                        <td class="fw-bold">
-                                            <span class="badge bg-info">{{ $item->id }}</span>
-                                        </td>
+                                        <td class="fw-bold">{{ $key + 1 }}</td>
                                         <td>
                                             <div class="fw-bold">{{ $item->nama_tagihan }}</div>
-                                            <small class="text-muted">{{ Str::limit($item->deskripsi, 50) ?? '-' }}</small>
+                                            <small class="text-muted">Rp. {{ number_format($item->nominal, 0, ',', '.') }}</small>
                                         </td>
                                         <td>
-                                            <strong>Rp. {{ number_format($item->nominal, 0, ',', '.') }}</strong>
-                                        </td>
-                                        <td>
-                                            <span class="badge 
-                                                @if($item->tipe === 'rutin')
-                                                    bg-success
-                                                @else
-                                                    bg-warning
-                                                @endif
-                                            ">
+                                            <span class="badge @if($item->tipe === 'rutin') bg-success @elseif($item->tipe === 'sekali') bg-warning @else bg-info @endif">
                                                 {{ ucfirst($item->tipe) }}
                                             </span>
                                         </td>
+                                        <td class="fw-medium">{{ $item->target ?? '-' }}</td>
                                         <td>
                                             {{ \Carbon\Carbon::parse($item->jatuh_tempo)->format('d M Y') }}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">Aktif</span>
                                         </td>
                                         <td>
                                             <div class="btn-group btn-group-sm" role="group">
                                                 <a href="{{ route('ModuleTagihan.edit', $item->id) }}" class="btn btn-outline-warning" title="Edit">
                                                     <i class="ti ti-pencil"></i>
                                                 </a>
-                                                <form action="{{ route('ModuleTagihan.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus tagihan ini dan semua relasinya? Tindakan ini tidak dapat dibatalkan.')">
+                                                <form action="{{ route('ModuleTagihan.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus tagihan ini dan semua relasinya?')">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-outline-danger" title="Hapus">
@@ -114,6 +115,48 @@
                         </a>
                     </div>
                 @endif
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-4">
+        <div class="card custom-card border-0 shadow-sm bg-light-primary">
+            <div class="card-body">
+                <div class="d-flex align-items-start">
+                    <div class="me-3">
+                        <i class="ti ti-info-circle fs-24" style="color: #2390be;"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-2">Informasi Tagihan</h6>
+                        <p class="text-muted fs-13 mb-0">
+                            Gunakan menu Tagihan untuk membuat, mengelola, dan memantau semua tagihan iuran Parkir atau Sewa Kos.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card custom-card border-0 shadow-sm mt-3">
+            <div class="card-header bg-light border-0">
+                <h6 class="mb-0 fw-bold">
+                    <i class="ti ti-bulb me-2"></i>Tips Penggunaan
+                </h6>
+            </div>
+            <div class="card-body p-3 fs-13">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="ti ti-check text-success me-2"></i>
+                        <strong>Buat Tagihan</strong> untuk membuat iuran baru
+                    </li>
+                    <li class="mb-2">
+                        <i class="ti ti-check text-success me-2"></i>
+                        <strong>Edit Tagihan</strong> untuk mengubah data
+                    </li>
+                    <li>
+                        <i class="ti ti-check text-success me-2"></i>
+                        <strong>Hapus Tagihan</strong> jika sudah tidak digunakan
+                    </li>
+                </ul>
             </div>
         </div>
     </div>

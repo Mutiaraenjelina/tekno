@@ -30,11 +30,15 @@ class PaymentPageController extends Controller
             abort(404);
         }
 
-        $paymentRequest = Request::create('/api/create-payment', 'POST', [
+        $statusUrl = rtrim($request->root(), '/') . '/tagihan/status';
+
+        $paymentRequest = $request->duplicate([], [
             'tagihan_id' => $tagihanId,
             'user_id' => $userId,
             'amount' => $tagihan->nominal,
+            'status_url' => $statusUrl,
         ]);
+        $paymentRequest->setMethod('POST');
 
         $response = app(ModulePaymentGatewayController::class)->createPayment($paymentRequest);
         $payload = $response->getData(true);

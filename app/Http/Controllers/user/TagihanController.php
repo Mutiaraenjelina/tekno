@@ -5,9 +5,85 @@ namespace App\Http\Controllers\user;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 
 class TagihanController extends Controller
 {
+    private function mapGatewayStatusToLocal(string $gatewayStatus): string
+    {
+        $statusMap = [
+            'settlement' => 'success',
+            'capture' => 'success',
+            'pending' => 'pending',
+            'expire' => 'expired',
+            'cancel' => 'failed',
+            'deny' => 'failed',
+            'failure' => 'failed',
+        ];
+
+        return $statusMap[strtolower($gatewayStatus)] ?? 'pending';
+    }
+
+    private function syncMidtransStatusByOrderId(string $orderId, int $userId): void
+    {
+        $serverKey = config('services.midtrans.server_key');
+        if (empty($serverKey)) {
+            return;
+        }
+
+        $trx = DB::table('transaksi')
+            ->where('order_id', $orderId)
+            ->where('user_id', $userId)
+            ->first();
+
+        if (! $trx) {
+            return;
+        }
+
+        try {
+            $baseUrl = config('services.midtrans.is_production', false)
+                ? 'https://api.midtrans.com'
+                : 'https://api.sandbox.midtrans.com';
+
+            $response = Http::withBasicAuth($serverKey, '')
+                ->acceptJson()
+                ->get($baseUrl . '/v2/' . $orderId . '/status');
+
+            if (! $response->successful()) {
+                Log::warning('Failed syncing Midtrans status from status page', [
+                    'order_id' => $orderId,
+                    'http_status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return;
+            }
+
+            $gatewayStatus = (string) ($response->json('transaction_status') ?? 'pending');
+            $newStatus = $this->mapGatewayStatusToLocal($gatewayStatus);
+
+            DB::table('transaksi')->where('id', $trx->id)->update([
+                'status' => $newStatus,
+                'updated_at' => now(),
+            ]);
+
+            DB::table('tagihan_user')
+                ->where('tagihan_id', $trx->tagihan_id)
+                ->where('user_id', $trx->user_id)
+                ->update([
+                    'status' => $newStatus === 'success' ? 'sudah' : 'belum',
+                    'payment_id' => $trx->id,
+                    'updated_at' => now(),
+                ]);
+        } catch (\Throwable $e) {
+            Log::warning('Exception syncing Midtrans status from status page', [
+                'order_id' => $orderId,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     private function baseTagihanQuery(int $userId)
     {
         return DB::table('tagihan_user as tu')
@@ -88,9 +164,14 @@ class TagihanController extends Controller
     /**
      * Display assignment/payment status list for authenticated user.
      */
-    public function status()
+    public function status(Request $request)
     {
         $userId = Auth::id();
+
+        $orderId = $request->query('order_id');
+        if (is_string($orderId) && $orderId !== '') {
+            $this->syncMidtransStatusByOrderId($orderId, $userId);
+        }
 
         $assignments = $this->baseTagihanQuery($userId)
             ->orderBy('t.jatuh_tempo', 'desc')
