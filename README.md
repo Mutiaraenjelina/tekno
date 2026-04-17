@@ -1,3 +1,86 @@
+## Setup Tim (Wajib)
+
+Panduan ini dipakai agar project bisa dijalankan di laptop rekan tim dengan hasil yang sama.
+
+### 1) Clone dan install dependency
+
+```bash
+git clone https://github.com/Mutiaraenjelina/tekno.git
+cd tekno
+composer install
+npm install
+```
+
+### 2) Siapkan environment
+
+```bash
+cp .env.example .env
+php artisan key:generate
+php artisan jwt:secret
+```
+
+Lalu sesuaikan nilai berikut di file .env:
+
+- APP_URL
+- DB_HOST
+- DB_PORT
+- DB_DATABASE
+- DB_USERNAME
+- DB_PASSWORD
+- MIDTRANS_SERVER_KEY
+- MIDTRANS_CLIENT_KEY
+- MIDTRANS_IS_PRODUCTION
+
+### 3) Siapkan database
+
+Pilih salah satu cara berikut:
+
+- Cara A (direkomendasikan untuk data sama persis seperti developer): import file `database/db_tapatupa_13032026.sql` ke MySQL.
+- Cara B (skema kosong): jalankan migration dan seeder jika tersedia.
+
+Contoh command migration:
+
+```bash
+php artisan migrate
+```
+
+### 4) Build asset frontend
+
+```bash
+npm run build
+```
+
+Untuk development mode:
+
+```bash
+npm run dev
+```
+
+### 5) Jalankan aplikasi
+
+```bash
+php artisan serve
+```
+
+### 6) Validasi cepat setelah setup
+
+- Login admin dan user berhasil.
+- Halaman pembayaran tidak menampilkan data duplikat user/tagihan yang sama.
+- Dashboard dan laporan menampilkan data terbaru.
+- Proses verifikasi pembayaran mengubah status tagihan_user sesuai status transaksi.
+
+### Catatan penting
+
+- File `.env` tidak ikut Git, gunakan `.env.example` sebagai template.
+- Folder `vendor` tidak ikut Git, wajib `composer install` di tiap laptop.
+- Jika ada perubahan config/env, jalankan:
+
+```bash
+php artisan optimize:clear
+```
+
+---
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
