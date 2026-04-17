@@ -7,8 +7,8 @@
         <div class="">
             <nav>
                 <ol class="breadcrumb breadcrumb-example1 mb-0">
-                    <li class="breadcrumb-item"><a href="javascript:void(0);">Tagihan Dan Pembayaran</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Assignment Tagihan User</li>
+                    <li class="breadcrumb-item"><a href="{{ route('Dashboard.index') }}">Admin</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Penugasan Tagihan</li>
                 </ol>
             </nav>
         </div>
