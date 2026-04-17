@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\DB;
-use Tymon\JWTAuth\Facades\JWTAuth;
-use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -19,6 +18,63 @@ class AuthController extends Controller
     public function index()
     {
         return view('auth.login');
+    }
+
+    public function register()
+    {
+        return view('auth.register');
+    }
+
+    public function proses_register(Request $request)
+    {
+        $validated = $request->validate([
+            'jenis_tagihan' => ['required', 'in:rutin,non_rutin'],
+            'username' => ['required', 'string', 'max:255', 'unique:users,username'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'nama' => ['required_if:jenis_tagihan,rutin', 'nullable', 'string', 'max:255'],
+            'no_wa' => ['required_if:jenis_tagihan,rutin', 'nullable', 'string', 'max:30'],
+        ], [
+            'jenis_tagihan.required' => 'Silakan pilih jenis tagihan usaha.',
+            'jenis_tagihan.in' => 'Jenis tagihan tidak valid.',
+            'nama.required_if' => 'Nama pelanggan wajib diisi untuk usaha tagihan rutin.',
+            'no_wa.required_if' => 'No WhatsApp wajib diisi untuk usaha tagihan rutin.',
+            'password.confirmed' => 'Konfirmasi password tidak sesuai.',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $pelangganId = null;
+
+            if ($validated['jenis_tagihan'] === 'rutin') {
+                $pelangganId = DB::table('pelanggan')->insertGetId([
+                    'nama' => $validated['nama'],
+                    'no_wa' => $validated['no_wa'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            User::create([
+                'roleId' => 3,
+                'idJenisUser' => $validated['jenis_tagihan'] === 'rutin' ? 1 : 2,
+                'idPersonal' => $pelangganId,
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('login')->with('success_register', 'Registrasi berhasil. Silakan login.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            return back()->withInput()->withErrors([
+                'register_gagal' => 'Registrasi gagal. Silakan coba lagi.',
+            ]);
+        }
     }
 
     public function proses_login(Request $request)
@@ -63,8 +119,8 @@ class AuthController extends Controller
                 //return redirect()->intended('admin');
                 return redirect()->route('Dashboard.index');
             }elseif ($user->roleId == '3') {
-                \Log::info('Redirecting User to WajibRetribusi.dashboardUser');
-                return redirect()->route('WajibRetribusi.dashboardUser');
+                \Log::info('Redirecting User to user.dashboard.index');
+                return redirect()->route('user.dashboard.index');
             } 
             
 

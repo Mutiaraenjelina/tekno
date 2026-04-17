@@ -66,6 +66,27 @@
                     </div>
 
                     <div class="col-12">
+                        <label class="form-label fw-medium">Hubungkan ke Akun User (Opsional)</label>
+                        <select name="user_ids[]" class="form-select @error('user_ids') is-invalid @enderror" multiple>
+                            @foreach($userOptions as $user)
+                                <option value="{{ $user->id }}" {{ in_array($user->id, old('user_ids', [])) ? 'selected' : '' }}>
+                                    {{ $user->username }} ({{ $user->email ?? '-' }})
+                                    @if($user->idPersonal)
+                                        - Terhubung ke pelanggan #{{ $user->idPersonal }}
+                                    @endif
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('user_ids')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                        @error('user_ids.*')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted d-block mt-1">Tips: tekan Ctrl (Windows) untuk memilih lebih dari satu user.</small>
+                    </div>
+
+                    <div class="col-12">
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="ti ti-check me-2"></i>Simpan Pelanggan

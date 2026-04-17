@@ -1,23 +1,11 @@
-@extends('layouts.admin.template')
+@extends('layouts.user.template')
 @section('content')
 
-<!-- Page Header -->
-<div class="my-4 page-header-breadcrumb d-flex align-items-center justify-content-between flex-wrap gap-2">
-    <div>
-        <h1 class="page-title fw-medium fs-18 mb-2">Detail Tagihan</h1>
-        <p class="text-muted mb-0">{{ $tagihan->nama_tagihan }}</p>
-        <nav>
-            <ol class="breadcrumb breadcrumb-example1 mb-0 mt-2">
-                <li class="breadcrumb-item"><a href="{{ route('user.dashboard.index') }}">Dashboard</a></li>
-                <li class="breadcrumb-item"><a href="{{ route('user.tagihan.index') }}">Tagihan Saya</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Detail</li>
-            </ol>
-        </nav>
-    </div>
+<div class="user-page-header">
+    <h1><i class="ti ti-file-invoice"></i> Detail Tagihan</h1>
+    <p class="subtitle">{{ $tagihan->nama_tagihan }}</p>
 </div>
-<!-- Page Header Close -->
 
-<!-- Start::row-1 -->
 <div class="row">
     <div class="col-xl-8">
         <!-- Status Alert -->
@@ -36,8 +24,8 @@
         @endif
 
         <!-- Invoice Card -->
-        <div class="card custom-card border-0 shadow-sm">
-            <div class="card-header bg-light border-0">
+        <div class="user-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
                 <div class="d-flex align-items-center justify-content-between">
                     <h5 class="mb-0">Informasi Tagihan</h5>
                     <span class="badge 
@@ -55,7 +43,7 @@
                     </span>
                 </div>
             </div>
-            <div class="card-body">
+
                 <!-- Nominal Section -->
                 <div class="text-center p-3 bg-light rounded mb-4">
                     <p class="text-muted mb-1">Jumlah Tagihan</p>
@@ -72,28 +60,42 @@
                         <label class="form-label text-muted fw-medium">Jatuh Tempo</label>
                         <p class="mb-0 fw-bold">{{ \Carbon\Carbon::parse($tagihan->jatuh_tempo)->format('d M Y') }}</p>
                     </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted fw-medium">Tipe Tagihan</label>
+                        <p class="mb-0 fw-bold text-uppercase">{{ $tagihan->tipe ?? '-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted fw-medium">Dibuat Oleh Admin</label>
+                        <p class="mb-0 fw-bold">{{ $tagihan->admin_creator_username ?? '-' }}</p>
+                    </div>
                 </div>
 
                 <hr class="my-3">
 
                 <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted fw-medium">Payment ID</label>
+                        <p class="mb-0">{{ $tagihan->payment_id ?? '-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted fw-medium">Gateway Status</label>
+                        <p class="mb-0">{{ $tagihan->transaksi_status ? strtoupper($tagihan->transaksi_status) : '-' }}</p>
+                    </div>
                     <div class="col-md-12">
                         <label class="form-label text-muted fw-medium">Deskripsi / Keterangan</label>
                         <p class="mb-0">{{ $tagihan->deskripsi ?? 'Tidak ada keterangan tambahan' }}</p>
                     </div>
                 </div>
-            </div>
         </div>
     </div>
 
     <!-- Sidebar -->
     <div class="col-xl-4">
         <!-- Action Card -->
-        <div class="card custom-card border-0 shadow-sm">
-            <div class="card-header bg-light border-0">
+        <div class="user-card">
+            <div class="mb-3">
                 <h5 class="mb-0">Tindakan</h5>
             </div>
-            <div class="card-body">
                 <div class="d-grid gap-2">
                     @if($tagihan->status !== 'sudah')
                         <a href="{{ route('PaymentPage.show', [$tagihan->id, $tagihan->user_id]) }}" class="btn btn-primary btn-lg">
@@ -108,21 +110,17 @@
                         <i class="ti ti-arrow-left me-2"></i>Kembali ke Daftar
                     </a>
                 </div>
-            </div>
         </div>
 
         <!-- Info Card -->
-        <div class="card custom-card border-0 shadow-sm mt-3">
-            <div class="card-body">
+        <div class="user-card mt-3">
                 <h6 class="text-muted fw-bold mb-3">Perlu Bantuan?</h6>
                 <p class="small text-muted mb-3">Jika ada pertanyaan tentang tagihan ini, hubungi customer service kami.</p>
                 <button class="btn btn-sm btn-outline-primary w-100" disabled>
                     <i class="ti ti-message me-2"></i>Chat dengan Customer Service
                 </button>
-            </div>
         </div>
     </div>
 </div>
-<!-- End::row-1 -->
 
 @endsection

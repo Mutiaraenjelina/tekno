@@ -1,28 +1,15 @@
-@extends('layouts.admin.template')
+@extends('layouts.user.template')
 @section('content')
 
-<!-- Page Header -->
-<div class="my-4 page-header-breadcrumb d-flex align-items-center justify-content-between flex-wrap gap-2">
-    <div>
-        <h1 class="page-title fw-medium fs-18 mb-2">Daftar Tagihan Saya</h1>
-        <p class="text-muted mb-0">Kelola dan bayar tagihan Anda dengan mudah</p>
-        <nav>
-            <ol class="breadcrumb breadcrumb-example1 mb-0 mt-2">
-                <li class="breadcrumb-item"><a href="{{ route('user.dashboard.index') }}">Dashboard</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Tagihan Saya</li>
-            </ol>
-        </nav>
-    </div>
+<div class="user-page-header">
+    <h1><i class="ti ti-receipt"></i> Tagihan Saya</h1>
+    <p class="subtitle">Daftar tagihan yang di-assign dari admin kepada akun Anda.</p>
 </div>
-<!-- Page Header Close -->
 
-<!-- Start::row-1 -->
-<div class="row">
-    <div class="col-xl-12">
+<div class="user-card">
         @if($tagihan->count() > 0)
-            <div class="card custom-card border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="table-responsive">
+            <div class="table-responsive">
+                <div class="user-table">
                         <table class="table table-hover table-striped">
                             <thead class="table-light">
                                 <tr>
@@ -31,6 +18,7 @@
                                     <th>Nominal</th>
                                     <th>Jatuh Tempo</th>
                                     <th>Status</th>
+                                    <th>Gateway</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
@@ -62,6 +50,15 @@
                                             @endif
                                         </td>
                                         <td>
+                                            @if($item->transaksi_status)
+                                                <span class="badge bg-info text-dark">{{ strtoupper($item->transaksi_status) }}</span>
+                                            @elseif($item->status === 'sudah')
+                                                <span class="text-muted small">Manual</span>
+                                            @else
+                                                <span class="text-muted small">Belum ada</span>
+                                            @endif
+                                        </td>
+                                        <td>
                                             <div class="btn-group btn-group-sm" role="group">
                                                 <a href="{{ route('user.tagihan.show', $item->id) }}" class="btn btn-outline-info" title="Lihat Detail">
                                                     <i class="ti ti-eye"></i>
@@ -77,12 +74,10 @@
                                 @endforeach
                             </tbody>
                         </table>
-                    </div>
                 </div>
             </div>
         @else
-            <div class="card custom-card border-0 shadow-sm">
-                <div class="card-body text-center py-5">
+            <div class="text-center py-5">
                     <div class="mb-3">
                         <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="text-success opacity-50" viewBox="0 0 16 16">
                             <path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 1 1-1.06-1.06L12.72 4.22a.75.75 0 0 1 1.06 0Z"/>
@@ -91,11 +86,8 @@
                     </div>
                     <h5 class="fw-bold mb-2">Tidak Ada Tagihan</h5>
                     <p class="text-muted mb-0">Anda tidak memiliki tagihan saat ini. Semua baik-baik saja! 🎉</p>
-                </div>
             </div>
         @endif
-    </div>
 </div>
-<!-- End::row-1 -->
 
 @endsection

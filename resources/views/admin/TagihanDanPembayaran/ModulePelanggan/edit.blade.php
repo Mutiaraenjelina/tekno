@@ -67,6 +67,28 @@
                     </div>
 
                     <div class="col-12">
+                        <label class="form-label fw-medium">Hubungkan ke Akun User</label>
+                        <select name="user_ids[]" class="form-select @error('user_ids') is-invalid @enderror" multiple>
+                            @foreach($userOptions as $user)
+                                <option value="{{ $user->id }}"
+                                    {{ in_array($user->id, old('user_ids', $linkedUserIds ?? [])) ? 'selected' : '' }}>
+                                    {{ $user->username }} ({{ $user->email ?? '-' }})
+                                    @if($user->idPersonal && $user->idPersonal != $pelanggan->id)
+                                        - Terhubung ke pelanggan #{{ $user->idPersonal }}
+                                    @endif
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('user_ids')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                        @error('user_ids.*')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
+                        <small class="text-muted d-block mt-1">User yang dipilih akan melihat data pelanggan ini di halaman user.</small>
+                    </div>
+
+                    <div class="col-12">
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-warning btn-lg">
                                 <i class="ti ti-check me-2"></i>Update Pelanggan

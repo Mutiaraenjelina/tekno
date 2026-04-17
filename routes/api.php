@@ -14,6 +14,9 @@ Route::post('/register', [ModuleAuthController::class, 'register']);
 Route::post('/login', [ModuleAuthController::class, 'login']);
 Route::post('/logout', [ModuleAuthController::class, 'logout'])->middleware(['jwt.client']);
 
+// MODULE PAYMENT GATEWAY CALLBACK (PUBLIC FOR MIDTRANS)
+Route::post('/midtrans-callback', [ModulePaymentGatewayController::class, 'midtransCallback']);
+
 Route::middleware(['jwt.client'])->group(function () {
     // MODULE TAGIHAN (CRUD)
     Route::get('/tagihan', [ModuleTagihanController::class, 'index']);
@@ -49,5 +52,4 @@ Route::middleware(['jwt.client'])->group(function () {
 
     // MODULE PAYMENT GATEWAY (MIDTRANS)
     Route::post('/create-payment', [ModulePaymentGatewayController::class, 'createPayment']);
-    Route::post('/midtrans-callback', [ModulePaymentGatewayController::class, 'midtransCallback']);
 });

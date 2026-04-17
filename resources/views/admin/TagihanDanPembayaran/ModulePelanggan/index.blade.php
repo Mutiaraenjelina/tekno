@@ -49,10 +49,11 @@
                             <thead class="table-light">
                                 <tr>
                                     <th width="8%">ID</th>
-                                    <th width="35%">Nama Pelanggan</th>
+                                    <th width="24%">Nama Pelanggan</th>
                                     <th width="20%">Nomor WhatsApp</th>
-                                    <th width="15%">Terdaftar Sejak</th>
-                                    <th width="20%">Aksi</th>
+                                    <th width="20%">Akun User Terkait</th>
+                                    <th width="13%">Terdaftar Sejak</th>
+                                    <th width="15%">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -68,6 +69,14 @@
                                             <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $item->no_wa) }}" target="_blank" class="text-success">
                                                 <i class="ti ti-brand-whatsapp me-1"></i>{{ $item->no_wa }}
                                             </a>
+                                        </td>
+                                        <td>
+                                            @if((int) $item->linked_user_count > 0)
+                                                <span class="badge bg-success mb-1">{{ $item->linked_user_count }} user</span>
+                                                <div class="small text-muted">{{ $item->linked_usernames }}</div>
+                                            @else
+                                                <span class="badge bg-light text-dark">Belum terhubung</span>
+                                            @endif
                                         </td>
                                         <td>
                                             {{ \Carbon\Carbon::parse($item->created_at)->format('d M Y') }}

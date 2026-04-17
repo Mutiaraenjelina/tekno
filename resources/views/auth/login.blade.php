@@ -45,6 +45,12 @@
                     <div class="basicpage-border"></div>
                     <div class="basicpage-border1"></div>
                     <div class="card-body p-5">
+                        @if(session('success_register'))
+                            <div class="alert alert-success" role="alert">
+                                {{ session('success_register') }}
+                            </div>
+                        @endif
+
                         <div class="mb-3 d-flex justify-content-center">
                             @error('login_gagal')
                                 <div class="toast align-items-center text-bg-danger border-0 fade show mb-4" role="alert"
@@ -67,8 +73,11 @@
                                     alt="logo" class="desktop-dark">
                             </a>
                         </div>
-                        <p class="h4 fw-semibold mb-2 text-center">Login</p>
-                        <!--<p class="mb-4 text-muted fw-normal text-center">Welcome back Jhon !</p> -->
+                        <p class="h4 fw-semibold mb-2 text-center">Portal TAPATUPA</p>
+                        <p class="text-center text-muted fs-12 mb-4">
+                            <span class="d-block">Untuk Administrator & UMKM</span>
+                            <span class="d-block fs-11 mt-1">Gunakan username dan password Anda untuk login</span>
+                        </p>
                         <form action="{{url('proses_login')}}" method="POST" id="logForm">
                             {{ csrf_field() }}
                             <div class="row gy-3">
@@ -102,6 +111,9 @@
                             </div>
                             <div class="d-grid mt-4">
                                 <button class="btn btn-primary btn-block" type="submit">Login</button>
+                            </div>
+                            <div class="d-grid mt-2">
+                                <a href="{{ route('register') }}" class="btn btn-outline-primary">Daftar Akun UMKM</a>
                             </div>
                         </form>
                     </div>

@@ -91,6 +91,14 @@
                             disabled
                         >
                         <small class="text-muted d-block mt-1">Masukkan ID tagihan secara manual</small>
+                        @if($tagihanOptions->isNotEmpty())
+                            <small class="text-muted d-block mt-1">
+                                ID tersedia:
+                                @foreach($tagihanOptions->take(10) as $tagihan)
+                                    <span class="badge bg-light text-dark border me-1 mb-1">#{{ $tagihan->id }} {{ $tagihan->nama_tagihan }}</span>
+                                @endforeach
+                            </small>
+                        @endif
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-medium">User</label>
@@ -100,7 +108,7 @@
                                 <option value="" disabled>Tidak ada user tersedia</option>
                             @else
                                 @foreach ($userOptions as $user)
-                                    <option value="{{ $user->id }}">
+                                    <option value="{{ $user->id }}" {{ (string) old('user_id') === (string) $user->id ? 'selected' : '' }}>
                                         {{ $user->username }} @if($user->namaPelanggan) ({{ $user->namaPelanggan }}) @endif
                                     </option>
                                 @endforeach
@@ -178,26 +186,39 @@
                                             <small class="text-muted">{{ $assignment->email }}</small>
                                         </td>
                                         <td>
-                                            <span class="badge 
-                                                @if($assignment->transaksi_status === 'settlement' || $assignment->transaksi_status === 'capture')
-                                                    bg-success
-                                                @elseif($assignment->transaksi_status === 'pending')
-                                                    bg-warning
-                                                @else
-                                                    bg-secondary
-                                                @endif
-                                            ">
-                                                @if($assignment->transaksi_status)
-                                                    {{ strtoupper($assignment->transaksi_status) }}
-                                                @else
-                                                    <i class="ti ti-minus me-1"></i>Tidak ada transaksi
-                                                @endif
-                                            </span>
-                                            @if($assignment->order_id)
-                                                <div>
-                                                    <small class="text-muted d-block mt-1">Order: {{ $assignment->order_id }}</small>
-                                                </div>
+                                            @if($assignment->status === 'sudah')
+                                                <span class="badge bg-success mb-1">
+                                                    <i class="ti ti-check me-1"></i>Sudah Bayar
+                                                </span>
+                                            @else
+                                                <span class="badge bg-warning text-dark mb-1">
+                                                    <i class="ti ti-clock-hour-3 me-1"></i>Belum Bayar
+                                                </span>
                                             @endif
+
+                                            <div>
+                                                @if($assignment->transaksi_status)
+                                                    <span class="badge 
+                                                        @if($assignment->transaksi_status === 'settlement' || $assignment->transaksi_status === 'capture')
+                                                            bg-success
+                                                        @elseif($assignment->transaksi_status === 'pending')
+                                                            bg-warning text-dark
+                                                        @else
+                                                            bg-secondary
+                                                        @endif
+                                                    ">
+                                                        Gateway: {{ strtoupper($assignment->transaksi_status) }}
+                                                    </span>
+                                                    @if($assignment->order_id)
+                                                        <small class="text-muted d-block mt-1">Order: {{ $assignment->order_id }}</small>
+                                                    @endif
+                                                @else
+                                                    <small class="text-muted d-block mt-1">
+                                                        <i class="ti ti-minus me-1"></i>
+                                                        {{ $assignment->status === 'sudah' ? 'Dibayar manual (tanpa transaksi gateway)' : 'Belum ada transaksi' }}
+                                                    </small>
+                                                @endif
+                                            </div>
                                         </td>
                                         <td>
                                             <form action="{{ route('TagihanUser.update', $assignment->id) }}" method="POST">

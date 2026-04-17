@@ -58,7 +58,16 @@ class TagihanUserController extends Controller
             'tagihan_id_manual' => ['nullable', 'integer', 'required_without:tagihan_id'],
             'user_id' => ['required', 'integer'],
             'status' => ['required', 'in:belum,sudah'],
-            'payment_id' => ['nullable', 'integer'],
+            'payment_id' => ['nullable', 'integer', 'exists:transaksi,id'],
+        ], [
+            'tagihan_id.required_without' => 'Pilih tagihan dari dropdown atau isi ID tagihan manual.',
+            'tagihan_id_manual.required_without' => 'Isi ID tagihan manual atau pilih dari dropdown.',
+            'tagihan_id.integer' => 'Tagihan dari dropdown tidak valid.',
+            'tagihan_id_manual.integer' => 'ID tagihan manual harus berupa angka.',
+            'user_id.required' => 'User wajib dipilih.',
+            'user_id.integer' => 'User tidak valid.',
+            'payment_id.integer' => 'Payment ID harus berupa angka.',
+            'payment_id.exists' => 'Payment ID tidak ditemukan di data transaksi.',
         ]);
 
         $tagihanId = (int) ($validated['tagihan_id_manual'] ?? $validated['tagihan_id']);
@@ -99,7 +108,10 @@ class TagihanUserController extends Controller
 
         $validated = $request->validate([
             'status' => ['required', 'in:belum,sudah'],
-            'payment_id' => ['nullable', 'integer'],
+            'payment_id' => ['nullable', 'integer', 'exists:transaksi,id'],
+        ], [
+            'payment_id.integer' => 'Payment ID harus berupa angka.',
+            'payment_id.exists' => 'Payment ID tidak ditemukan di data transaksi.',
         ]);
 
         DB::table('tagihan_user')->where('id', $id)->update([
@@ -127,8 +139,12 @@ class TagihanUserController extends Controller
 
         $userData = DB::table('users')->select('idPersonal')->where('id', $userId)->first();
 
-        if (! $tagihanData || ! $userData) {
-            return 'Tagihan atau user tidak ditemukan.';
+        if (! $tagihanData) {
+            return 'Tagihan tidak ditemukan. Periksa ID tagihan yang dipilih/diinput.';
+        }
+
+        if (! $userData) {
+            return 'User tidak ditemukan. Silakan pilih user yang valid.';
         }
 
         if (! DB::table('pelanggan')->where('id', $userData->idPersonal)->exists()) {

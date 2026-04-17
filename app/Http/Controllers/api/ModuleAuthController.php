@@ -14,23 +14,33 @@ class ModuleAuthController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'nama' => ['required', 'string', 'max:255'],
-            'no_wa' => ['required', 'string', 'max:30'],
+            'jenis_tagihan' => ['required', 'in:rutin,non_rutin'],
+            'nama' => ['required_if:jenis_tagihan,rutin', 'nullable', 'string', 'max:255'],
+            'no_wa' => ['required_if:jenis_tagihan,rutin', 'nullable', 'string', 'max:30'],
             'username' => ['required', 'string', 'max:255', 'unique:users,username'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6'],
+        ], [
+            'jenis_tagihan.required' => 'Silakan pilih jenis tagihan usaha.',
+            'jenis_tagihan.in' => 'Jenis tagihan tidak valid.',
+            'nama.required_if' => 'Nama pelanggan wajib diisi untuk usaha tagihan rutin.',
+            'no_wa.required_if' => 'No WhatsApp wajib diisi untuk usaha tagihan rutin.',
         ]);
 
-        $pelangganId = DB::table('pelanggan')->insertGetId([
-            'nama' => $validated['nama'],
-            'no_wa' => $validated['no_wa'],
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $pelangganId = null;
+
+        if ($validated['jenis_tagihan'] === 'rutin') {
+            $pelangganId = DB::table('pelanggan')->insertGetId([
+                'nama' => $validated['nama'],
+                'no_wa' => $validated['no_wa'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
 
         $user = User::create([
             'roleId' => 3,
-            'idJenisUser' => 1,
+            'idJenisUser' => $validated['jenis_tagihan'] === 'rutin' ? 1 : 2,
             'idPersonal' => $pelangganId,
             'username' => $validated['username'],
             'email' => $validated['email'],
@@ -42,6 +52,7 @@ class ModuleAuthController extends Controller
             'message' => 'Register berhasil.',
             'data' => [
                 'user_id' => $user->id,
+                'jenis_tagihan' => $validated['jenis_tagihan'],
                 'pelanggan_id' => $pelangganId,
             ],
         ]);
