@@ -9,9 +9,25 @@ use Illuminate\Support\Facades\Auth;
 
 class ModuleTagihanController extends Controller
 {
+    private function isSuperAdmin(): bool
+    {
+        return Auth::check() && (string) Auth::user()->roleId === '1';
+    }
+
+    private function tagihanScope()
+    {
+        $query = DB::table('tagihan');
+
+        if (! $this->isSuperAdmin()) {
+            $query->where('created_by', Auth::id());
+        }
+
+        return $query;
+    }
+
     public function index()
     {
-        $tagihanList = DB::table('tagihan')
+        $tagihanList = $this->tagihanScope()
             ->orderByDesc('id')
             ->get();
 
@@ -33,13 +49,15 @@ class ModuleTagihanController extends Controller
             'jatuh_tempo' => ['required', 'date'],
         ]);
 
+        $createdBy = $this->isSuperAdmin() ? Auth::id() : Auth::id();
+
         $id = DB::table('tagihan')->insertGetId([
             'nama_tagihan' => $validated['nama_tagihan'],
             'deskripsi' => $validated['deskripsi'] ?? null,
             'nominal' => $validated['nominal'],
             'tipe' => $validated['tipe'],
             'jatuh_tempo' => $validated['jatuh_tempo'],
-            'created_by' => Auth::id(),
+            'created_by' => $createdBy,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -50,7 +68,7 @@ class ModuleTagihanController extends Controller
 
     public function edit($id)
     {
-        $tagihan = DB::table('tagihan')->where('id', $id)->first();
+        $tagihan = $this->tagihanScope()->where('id', $id)->first();
 
         if (!$tagihan) {
             return redirect()->route('ModuleTagihan.index')->with('error', 'Tagihan tidak ditemukan.');
@@ -69,7 +87,7 @@ class ModuleTagihanController extends Controller
             'jatuh_tempo' => ['required', 'date'],
         ]);
 
-        $updated = DB::table('tagihan')->where('id', $id)->update([
+        $updated = $this->tagihanScope()->where('id', $id)->update([
             'nama_tagihan' => $validated['nama_tagihan'],
             'deskripsi' => $validated['deskripsi'] ?? null,
             'nominal' => $validated['nominal'],
@@ -88,11 +106,17 @@ class ModuleTagihanController extends Controller
 
     public function destroy($id)
     {
+        $tagihan = $this->tagihanScope()->where('id', $id)->first();
+
+        if (! $tagihan) {
+            return redirect()->route('ModuleTagihan.index')->with('error', 'Tagihan tidak ditemukan.');
+        }
+
         // Cascade delete: remove tagihan_user and transaksi related to this tagihan
         DB::table('tagihan_user')->where('tagihan_id', $id)->delete();
         DB::table('transaksi')->where('tagihan_id', $id)->delete();
         
-        $deleted = DB::table('tagihan')->where('id', $id)->delete();
+        $deleted = $this->tagihanScope()->where('id', $id)->delete();
 
         if (!$deleted) {
             return redirect()->route('ModuleTagihan.index')->with('error', 'Tagihan tidak ditemukan.');

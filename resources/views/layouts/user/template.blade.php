@@ -1,3 +1,15 @@
+@php
+    if (file_exists(public_path('admin_resources/assets/images/user-general/sipayda_logo.png'))) {
+        $brandLogo = 'admin_resources/assets/images/user-general/sipayda_logo.png';
+    } elseif (file_exists(public_path('admin_resources/assets/images/user-general/sipayda_logo.jpg'))) {
+        $brandLogo = 'admin_resources/assets/images/user-general/sipayda_logo.jpg';
+    } elseif (file_exists(public_path('admin_resources/assets/images/user-general/sipayda_logo.jpeg'))) {
+        $brandLogo = 'admin_resources/assets/images/user-general/sipayda_logo.jpeg';
+    } else {
+        $brandLogo = 'admin_resources/assets/images/user-general/patupa_logo_white_bg.png';
+    }
+@endphp
+
 <!DOCTYPE html>
 <html lang="id" dir="ltr">
 
@@ -6,7 +18,7 @@
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>TAPATUPA - Portal UMKM</title>
+    <title>SIPAYDA - Portal UMKM</title>
 
     <!-- Favicon -->
     <link rel="icon" href="{{ asset('admin_resources/assets/images/brand-logos/favicon2.ico') }}" type="image/x-icon">
@@ -70,6 +82,16 @@
         .user-navbar .navbar-brand img {
             height: 40px;
             width: auto;
+        }
+
+        .brand-logo-fit-user {
+            width: 252px;
+            height: 76px;
+            object-fit: contain;
+            object-position: center;
+            mix-blend-mode: multiply;
+            filter: contrast(1.08) saturate(1.06);
+            display: block;
         }
 
         .user-navbar .nav-link {
@@ -381,6 +403,11 @@
                 padding: 0.5rem 0.5rem !important;
                 font-size: 0.9rem;
             }
+
+            .brand-logo-fit-user {
+                width: 214px;
+                height: 64px;
+            }
         }
 
         /* Breadcrumb */
@@ -433,10 +460,10 @@
     <!-- Navbar -->
     <nav class="user-navbar navbar navbar-expand-lg navbar-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ route('user.dashboard.index') }}">
-                <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
-                    alt="Tapatupa" style="height: 48px; width: auto; display: block;">
-            </a>
+            <div class="navbar-brand">
+                <img src="{{ asset($brandLogo) }}"
+                    alt="SIPAYDA" class="brand-logo-fit-user">
+            </div>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#userNavbar"
                 aria-controls="userNavbar" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -500,7 +527,7 @@
 
     <!-- Footer -->
     <footer class="user-footer">
-        <p>&copy; 2024-2026 TAPATUPA - Sistem Manajemen Tagihan UMKM</p>
+        <p>&copy; 2024-2026 SIPAYDA - Sistem Manajemen Tagihan UMKM</p>
         <p>Platform Retribusi Pendapatan Daerah</p>
     </footer>
 

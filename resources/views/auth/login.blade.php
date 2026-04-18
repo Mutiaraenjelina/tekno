@@ -1,3 +1,15 @@
+@php
+    if (file_exists(public_path('admin_resources/assets/images/user-general/sipayda_logo.png'))) {
+        $brandLogo = 'admin_resources/assets/images/user-general/sipayda_logo.png';
+    } elseif (file_exists(public_path('admin_resources/assets/images/user-general/sipayda_logo.jpg'))) {
+        $brandLogo = 'admin_resources/assets/images/user-general/sipayda_logo.jpg';
+    } elseif (file_exists(public_path('admin_resources/assets/images/user-general/sipayda_logo.jpeg'))) {
+        $brandLogo = 'admin_resources/assets/images/user-general/sipayda_logo.jpeg';
+    } else {
+        $brandLogo = 'admin_resources/assets/images/user-general/patupa_logo_white_bg.png';
+    }
+@endphp
+
 <!DOCTYPE html>
 <html lang="en" dir="ltr" data-nav-layout="vertical" data-vertical-style="overlay" data-theme-mode="light"
     data-header-styles="light" data-menu-styles="light" data-toggled="close" style="--primary-rgb: 35, 144, 190;">
@@ -8,7 +20,7 @@
     <meta charset="UTF-8">
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title> TAPATUPA </title>
+    <title> SIPAYDA </title>
     <meta name="Description" content="Bootstrap Responsive Admin Web Dashboard HTML5 Template">
     <meta name="Author" content="Spruko Technologies Private Limited">
     <meta name="keywords"
@@ -36,6 +48,17 @@
 
 
 </head>
+
+<style>
+    .brand-logo-fit-auth {
+        width: 330px;
+        height: 118px;
+        object-fit: contain;
+        object-position: center;
+        mix-blend-mode: multiply;
+        filter: contrast(1.08) saturate(1.06);
+    }
+</style>
 
 <body class="authentication-background">
     <div class="container">
@@ -66,17 +89,14 @@
                             @enderror
                         </div>
                         <div class="mb-3 d-flex justify-content-center">
-                            <a href="index.html">
-                                <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
-                                    alt="logo" class="desktop-logo">
-                                <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
-                                    alt="logo" class="desktop-dark">
-                            </a>
+                            <img src="{{ asset($brandLogo) }}"
+                                alt="logo" class="desktop-logo brand-logo-fit-auth">
+                            <img src="{{ asset($brandLogo) }}"
+                                alt="logo" class="desktop-dark brand-logo-fit-auth">
                         </div>
-                        <p class="h4 fw-semibold mb-2 text-center">Portal TAPATUPA</p>
                         <p class="text-center text-muted fs-12 mb-4">
-                            <span class="d-block">Untuk Administrator & UMKM</span>
-                            <span class="d-block fs-11 mt-1">Gunakan username dan password Anda untuk login</span>
+                            <span class="d-block">Untuk Super Admin, Admin UMKM, dan Pelanggan</span>
+                            <span class="d-block fs-11 mt-1">Akun pelanggan dibuat oleh Admin UMKM dan kredensial dapat dikirim via WhatsApp.</span>
                         </p>
                         <form action="{{url('proses_login')}}" method="POST" id="logForm">
                             {{ csrf_field() }}
@@ -110,7 +130,7 @@
                                 </div>
                             </div>
                             <div class="d-grid mt-4">
-                                <button class="btn btn-primary btn-block" type="submit">Login</button>
+                                <button class="btn btn-primary btn-block" type="submit">Masuk ke Sistem</button>
                             </div>
                             <div class="d-grid mt-2">
                                 <a href="{{ route('register') }}" class="btn btn-outline-primary">Daftar Akun UMKM</a>

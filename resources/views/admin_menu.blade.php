@@ -72,7 +72,7 @@
                 <path d="M0 0h24v24H0V0z" fill="none"></path>
                 <path d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z" />
             </svg>
-            <span class="side-menu__label">Transaksi</span>
+            <span class="side-menu__label">Link & QR Pembayaran</span>
         </a>
     </li>
 

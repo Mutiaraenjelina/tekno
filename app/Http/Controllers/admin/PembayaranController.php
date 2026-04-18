@@ -4,6 +4,7 @@ namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PembayaranController extends Controller
@@ -18,6 +19,9 @@ class PembayaranController extends Controller
             })
             ->leftJoin('users as u', 'u.id', '=', 'tr.user_id')
             ->leftJoin('pelanggan as p', 'p.id', '=', 'u.idPersonal')
+            ->when(Auth::check() && (string) Auth::user()->roleId === '2', function ($query) {
+                $query->where('p.owner_user_id', Auth::id());
+            })
             ->select([
                 'tr.id',
                 'tr.order_id',

@@ -4,22 +4,44 @@ namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    private function isSuperAdmin(): bool
+    {
+        return Auth::check() && (string) Auth::user()->roleId === '1';
+    }
+
     public function index()
     {
-        $tagihanTotal = DB::table('tagihan')->count();
-        $totalBayar = DB::table('tagihan_user')
-            ->where('status', 'sudah')
+        $tagihanQuery = DB::table('tagihan');
+        if (! $this->isSuperAdmin()) {
+            $tagihanQuery->where('created_by', Auth::id());
+        }
+
+        $tagihanTotal = (clone $tagihanQuery)->count();
+        $totalBayar = DB::table('tagihan_user as tu')
+            ->join('tagihan as t', 'tu.tagihan_id', '=', 't.id')
+            ->where('tu.status', 'sudah')
+            ->when(! $this->isSuperAdmin(), function ($query) {
+                $query->where('t.created_by', Auth::id());
+            })
             ->count();
-        $totalBelumBayar = DB::table('tagihan_user')
-            ->where('status', 'belum')
+        $totalBelumBayar = DB::table('tagihan_user as tu')
+            ->join('tagihan as t', 'tu.tagihan_id', '=', 't.id')
+            ->where('tu.status', 'belum')
+            ->when(! $this->isSuperAdmin(), function ($query) {
+                $query->where('t.created_by', Auth::id());
+            })
             ->count();
         $totalNominal = DB::table('tagihan_user as tu')
             ->join('tagihan as t', 'tu.tagihan_id', '=', 't.id')
             ->where('tu.status', 'sudah')
+            ->when(! $this->isSuperAdmin(), function ($query) {
+                $query->where('t.created_by', Auth::id());
+            })
             ->sum('t.nominal') ?? 0;
 
         $paymentSummary = DB::table('tagihan_user')
@@ -58,7 +80,7 @@ class DashboardController extends Controller
             ];
         }
 
-        $recentTagihan = DB::table('tagihan')
+        $recentTagihan = (clone $tagihanQuery)
             ->orderByDesc('created_at')
             ->limit(5)
             ->get(['id', 'nama_tagihan', 'nominal', 'created_at as tagihan_created_at']);
@@ -66,6 +88,9 @@ class DashboardController extends Controller
         $recentTransaksi = DB::table('transaksi as tr')
             ->join('tagihan as t', 'tr.tagihan_id', '=', 't.id')
             ->join('users as u', 'tr.user_id', '=', 'u.id')
+            ->when(! $this->isSuperAdmin(), function ($query) {
+                $query->where('t.created_by', Auth::id());
+            })
             ->whereIn('tr.id', function ($query) {
                 $query->from('transaksi as trx_latest')
                     ->selectRaw('MAX(trx_latest.id)')

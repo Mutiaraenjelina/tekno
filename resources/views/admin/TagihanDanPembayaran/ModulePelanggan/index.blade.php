@@ -34,6 +34,40 @@
     </div>
 @endif
 
+@if (session('new_pelanggan_account'))
+    @php($newAccount = session('new_pelanggan_account'))
+    <div class="alert alert-info alert-dismissible fade show border-0 shadow-sm" role="alert">
+        <i class="ti ti-key me-2"></i>
+        <strong>Akun Pelanggan Berhasil Dibuat</strong>
+        <div class="mt-2 small">
+            <div>Nama: <strong>{{ $newAccount['nama'] ?? '-' }}</strong></div>
+            <div>Username: <strong>{{ $newAccount['username'] ?? '-' }}</strong></div>
+            <div>Password Awal: <strong>{{ $newAccount['password'] ?? '-' }}</strong></div>
+            @if(array_key_exists('wa_auto_sent', $newAccount))
+                <div class="mt-1">
+                    @if($newAccount['wa_auto_sent'])
+                        <span class="badge bg-success">WhatsApp Auto-Send: Berhasil</span>
+                    @else
+                        <span class="badge bg-warning text-dark">WhatsApp Auto-Send: Gagal / Belum Aktif</span>
+                    @endif
+                    @if(!empty($newAccount['wa_auto_message']))
+                        <div class="text-muted mt-1">{{ $newAccount['wa_auto_message'] }}</div>
+                    @endif
+                </div>
+            @endif
+            <div class="mt-2 d-flex gap-2 flex-wrap">
+                @if(!empty($newAccount['whatsapp_link']))
+                    <a href="{{ $newAccount['whatsapp_link'] }}" target="_blank" class="btn btn-success btn-sm">
+                        <i class="ti ti-brand-whatsapp me-1"></i>Kirim via WhatsApp
+                    </a>
+                @endif
+                <span class="badge bg-warning text-dark">Simpan kredensial ini sekarang. Password tidak ditampilkan lagi.</span>
+            </div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
+
 <div class="row">
     <div class="col-xl-8">
         <div class="card custom-card border-0 shadow-sm">
@@ -56,7 +90,7 @@
                                     <th width="8%">No</th>
                                     <th width="25%">Nama Pelanggan</th>
                                     <th width="20%">Nomor WA</th>
-                                    <th width="20%">User Terkait</th>
+                                    <th width="20%">Akun Login</th>
                                     <th width="12%">Terdaftar</th>
                                     <th width="15%">Aksi</th>
                                 </tr>
@@ -80,7 +114,8 @@
                                         </td>
                                         <td>
                                             @if((int) $item->linked_user_count > 0)
-                                                <span class="badge bg-success">{{ $item->linked_user_count }} user</span>
+                                                <div class="fw-semibold">{{ $item->linked_usernames }}</div>
+                                                <small class="text-muted">Akun pelanggan aktif</small>
                                             @else
                                                 <span class="badge bg-light text-dark">Belum terhubung</span>
                                             @endif
@@ -133,7 +168,7 @@
                     <div>
                         <h6 class="fw-bold mb-2">Informasi Pelanggan</h6>
                         <p class="text-muted fs-13 mb-0">
-                            Kelola data pelanggan dan hubungkan dengan akun user yang telah terdaftar di sistem.
+                            Admin UMKM dapat membuat akun pelanggan, lalu mengirim username dan password awal melalui WhatsApp.
                         </p>
                     </div>
                 </div>
@@ -154,11 +189,11 @@
                     </li>
                     <li class="mb-2">
                         <i class="ti ti-check text-success me-2"></i>
-                        Hubungkan ke user untuk akses portal
+                        Sistem otomatis membuat akun login pelanggan
                     </li>
                     <li>
                         <i class="ti ti-check text-success me-2"></i>
-                        Simpan nomor WhatsApp untuk notifikasi
+                        Simpan nomor WhatsApp untuk pengiriman kredensial
                     </li>
                 </ul>
             </div>

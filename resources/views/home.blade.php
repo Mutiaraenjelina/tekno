@@ -1,3 +1,15 @@
+@php
+    if (file_exists(public_path('admin_resources/assets/images/user-general/sipayda_logo.png'))) {
+        $brandLogo = 'admin_resources/assets/images/user-general/sipayda_logo.png';
+    } elseif (file_exists(public_path('admin_resources/assets/images/user-general/sipayda_logo.jpg'))) {
+        $brandLogo = 'admin_resources/assets/images/user-general/sipayda_logo.jpg';
+    } elseif (file_exists(public_path('admin_resources/assets/images/user-general/sipayda_logo.jpeg'))) {
+        $brandLogo = 'admin_resources/assets/images/user-general/sipayda_logo.jpeg';
+    } else {
+        $brandLogo = 'admin_resources/assets/images/user-general/patupa_logo_white_bg.png';
+    }
+@endphp
+
 <!DOCTYPE html>
 <html lang="en" dir="ltr" data-nav-layout="horizontal" data-nav-style="menu-click" data-menu-position="fixed"
     data-theme-mode="light" style="--primary-rgb: 35, 144, 190;">
@@ -8,8 +20,8 @@
     <meta charset="UTF-8">
     <meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=0'>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title> TAPATUPA - Transformasi Pengelolaan Aset Tanah </title>
-    <meta name="Description" content="TAPATUPA - Transformasi Pengelolaan Aset Tanah">
+    <title> SIPAYDA - Transformasi Pengelolaan Aset Tanah </title>
+    <meta name="Description" content="SIPAYDA - Transformasi Pengelolaan Aset Tanah">
     <meta name="Ardiles Sinaga" content="Badan Keuangan dan Aset Daerah">
 
     <!-- Favicon -->
@@ -48,6 +60,26 @@
         }
     </script>
 
+    <style>
+        .app-header .header-logo img,
+        .landing-logo-container .header-logo img {
+            width: 240px;
+            height: 78px;
+            object-fit: contain;
+            object-position: center;
+            mix-blend-mode: multiply;
+            filter: contrast(1.08) saturate(1.06);
+        }
+
+        @media (max-width: 768px) {
+            .app-header .header-logo img,
+            .landing-logo-container .header-logo img {
+                width: 214px;
+                height: 68px;
+            }
+        }
+    </style>
+
 
 </head>
 
@@ -67,16 +99,16 @@
                     <!-- Start::header-element -->
                     <div class="header-element">
                         <div class="horizontal-logo">
-                            <a href="index.html" class="header-logo">
-                                    <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
+                            <div class="header-logo">
+                                    <img src="{{ asset($brandLogo) }}"
                                     alt="logo" class="desktop-logo">
-                                    <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
+                                    <img src="{{ asset($brandLogo) }}"
                                     alt="logo" class="toggle-logo">
-                                    <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
+                                    <img src="{{ asset($brandLogo) }}"
                                     alt="logo" class="desktop-dark">
-                                    <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
+                                    <img src="{{ asset($brandLogo) }}"
                                     alt="logo" class="toggle-dark">
-                            </a>
+                            </div>
                         </div>
                     </div>
                     <!-- End::header-element -->
@@ -114,12 +146,12 @@
                     <nav class="main-menu-container nav nav-pills sub-open">
                         <div class="landing-logo-container">
                             <div class="horizontal-logo">
-                                <a href="{{ "/home" }}" class="header-logo">
-                                    <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
+                                <div class="header-logo">
+                                    <img src="{{ asset($brandLogo) }}"
                                         alt="logo" class="desktop-logo">
-                                    <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
+                                    <img src="{{ asset($brandLogo) }}"
                                         alt="logo" class="desktop-dark">
-                                </a>
+                                </div>
                             </div>
                         </div>
                         <div class="slide-left" id="slide-left"><svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191"
@@ -204,18 +236,18 @@
                             <div class="col-xxl-7 col-xl-7 col-lg-7 col-md-8">
                                 <div class="py-lg-5">
                                     <div class="mb-3">
-                                        <h3 class="fw-medium text-fixed-white op-9">TAPATUPA</h3>
+                                        <h3 class="fw-medium text-fixed-white op-9">SIPAYDA</h3>
                                     </div>
                                     <p class="landing-banner-heading mb-3"><span class="fw-semibold">Transformasi
                                             Pengelolaan Aset Tanah </span>Kabupaten Tapanuli Utara</p>
-                                    <div class="fs-16 mb-5 text-fixed-white op-7">TAPATUPA - Mewujudkan transparansi,
+                                    <div class="fs-16 mb-5 text-fixed-white op-7">SIPAYDA - Mewujudkan transparansi,
                                         akuntabilitas, dan efisiensi serta berkelanjutan, sehingga dapat memberikan
                                         manfaat yang lebih besar bagi masyarakat dan pembangunan daerah.</div>
                                 </div>
                             </div>
                             <div class="col-xxl-5 col-xl-5 col-lg-5 col-md-4 my-auto">
                                 <div class="text-end landing-main-image landing-heading-img">
-                                    <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
+                                    <img src="{{ asset($brandLogo) }}"
                                         alt="" class="img-fluid">
                                 </div>
                             </div>
@@ -436,7 +468,7 @@
                                 <p class="fs-12 fw-medium text-success mb-1"><span
                                         class="landing-section-heading landing-section-heading-dark text-fixed-white">FITUR-FITUR</span>
                                 </p>
-                                <h3 class="text-fixed-white text-center mt-3 fw-medium">FITUR UTAMA TAPATUPA</h3>
+                                <h3 class="text-fixed-white text-center mt-3 fw-medium">FITUR UTAMA SIPAYDA</h3>
                                 <div class="fs-16 text-fixed-white text-center op-8">Ullamco ea commodo.Sed ut
                                     perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque
                                     laudantium, totam rem aperiam.perspiciatis unde omnis.</div>
@@ -1268,8 +1300,8 @@
                     <div class="row justify-content-center">
                         <div class="col-xl-9">
                             <p class="text-muted fs-15 mb-5 fw-normal">Kamu dapat menghubungi kami kapanpun terkait
-                                dengan aplikasi TAPATUPA. Kami akan membantu Anda memdapatkan pengalaman yang luar biasa
-                                dalam menggunakan aplikasi TAPATUPA.</p>
+                                dengan aplikasi SIPAYDA. Kami akan membantu Anda memdapatkan pengalaman yang luar biasa
+                                dalam menggunakan aplikasi SIPAYDA.</p>
                         </div>
                     </div>
                     <div class="card-body p-0">
@@ -1387,8 +1419,8 @@
                     <div class="row">
                         <div class="col-md-5 col-sm-6 col-12 mb-md-0 mb-3">
                             <div class="px-4">
-                            <p class="fw-medium mb-3"><a href="{{ "/home" }}"><img height="40px"
-                            src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}" alt=""></a></p>
+                            <p class="fw-medium mb-3"><img height="40px"
+                            src="{{ asset($brandLogo) }}" alt=""></p>
                                 <p class="mb-2 op-6 fw-normal">
                                     Badan Keuangan dan Aset Daerah bertanggungjawab atas penganggaran APBD,
                                     penatausahaan keuangan, pengelolaan aset daerah dan penyusunan laporan serta

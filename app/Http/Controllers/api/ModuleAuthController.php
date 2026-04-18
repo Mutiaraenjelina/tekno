@@ -14,38 +14,38 @@ class ModuleAuthController extends Controller
     public function register(Request $request)
     {
         $validated = $request->validate([
-            'jenis_tagihan' => ['required', 'in:rutin,non_rutin'],
-            'nama' => ['required_if:jenis_tagihan,rutin', 'nullable', 'string', 'max:255'],
-            'no_wa' => ['required_if:jenis_tagihan,rutin', 'nullable', 'string', 'max:30'],
+            'nama_lengkap' => ['required', 'string', 'max:255'],
+            'nama_usaha' => ['required', 'string', 'max:255'],
+            'no_telepon' => ['required', 'string', 'max:30'],
+            'jenis_usaha' => ['required', 'string', 'max:100'],
+            'jenis_tagihan' => ['required', 'in:rutin,non-rutin'],
             'username' => ['required', 'string', 'max:255', 'unique:users,username'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6'],
         ], [
-            'jenis_tagihan.required' => 'Silakan pilih jenis tagihan usaha.',
-            'jenis_tagihan.in' => 'Jenis tagihan tidak valid.',
-            'nama.required_if' => 'Nama pelanggan wajib diisi untuk usaha tagihan rutin.',
-            'no_wa.required_if' => 'No WhatsApp wajib diisi untuk usaha tagihan rutin.',
+            'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
+            'nama_usaha.required' => 'Nama usaha wajib diisi.',
+            'no_telepon.required' => 'Nomor telepon wajib diisi.',
+            'jenis_usaha.required' => 'Jenis usaha wajib dipilih.',
+            'jenis_tagihan.required' => 'Jenis tagihan wajib dipilih.',
+            'password.min' => 'Password minimal 6 karakter.',
         ]);
-
-        $namaPelanggan = $validated['jenis_tagihan'] === 'rutin'
-            ? $validated['nama']
-            : $validated['username'];
-
-        $noWaPelanggan = $validated['jenis_tagihan'] === 'rutin'
-            ? $validated['no_wa']
-            : '-';
 
         // users.idPersonal pada schema aktif wajib terisi.
         $pelangganId = DB::table('pelanggan')->insertGetId([
-            'nama' => $namaPelanggan,
-            'no_wa' => $noWaPelanggan,
+            'nama' => $validated['nama_lengkap'],
+            'no_wa' => $validated['no_telepon'],
+            'nama_usaha' => $validated['nama_usaha'],
+            'jenis_usaha' => $validated['jenis_usaha'],
+            'jenis_tagihan' => $validated['jenis_tagihan'],
+            'is_umkm_verified' => false,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
         $user = User::create([
-            'roleId' => 3,
-            'idJenisUser' => $validated['jenis_tagihan'] === 'rutin' ? 1 : 2,
+            'roleId' => 2,
+            'idJenisUser' => 1,
             'idPersonal' => $pelangganId,
             'username' => $validated['username'],
             'email' => $validated['email'],
@@ -57,7 +57,7 @@ class ModuleAuthController extends Controller
             'message' => 'Register berhasil.',
             'data' => [
                 'user_id' => $user->id,
-                'jenis_tagihan' => $validated['jenis_tagihan'],
+                'role_id' => $user->roleId,
                 'pelanggan_id' => $pelangganId,
             ],
         ]);
@@ -80,12 +80,15 @@ class ModuleAuthController extends Controller
             ], 401);
         }
 
+        $user = JWTAuth::setToken($token)->toUser();
+
         return response()->json([
             'status' => 200,
             'message' => 'Login berhasil.',
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL() * 60,
+            'role_id' => (int) $user->roleId,
         ]);
     }
 

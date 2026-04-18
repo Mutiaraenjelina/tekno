@@ -4,15 +4,26 @@ namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ModuleTagihanUserController extends Controller
 {
+    private function isSuperAdmin(): bool
+    {
+        return Auth::check() && (string) Auth::user()->roleId === '1';
+    }
+
     public function index()
     {
         $rows = DB::table('tagihan_user as tu')
             ->leftJoin('tagihan as t', 't.id', '=', 'tu.tagihan_id')
             ->leftJoin('users as u', 'u.id', '=', 'tu.user_id')
+            ->leftJoin('pelanggan as p', 'p.id', '=', 'u.idPersonal')
+            ->when(! $this->isSuperAdmin(), function ($query) {
+                $query->where('p.owner_user_id', Auth::id())
+                    ->where('t.created_by', Auth::id());
+            })
             ->leftJoin('transaksi as tr', 'tr.id', '=', 'tu.payment_id')
             ->select('tu.*', 't.nama_tagihan', 'u.username', 'u.email', 'tr.order_id', 'tr.status as transaksi_status')
             ->orderByDesc('tu.id')
@@ -31,10 +42,29 @@ class ModuleTagihanUserController extends Controller
         ]);
 
         $tagihanExists = DB::table('tagihan')->where('id', $validated['tagihan_id'])->exists();
-        $user = DB::table('users')->where('id', $validated['user_id'])->first();
+        $user = DB::table('users as u')
+            ->leftJoin('pelanggan as p', 'p.id', '=', 'u.idPersonal')
+            ->select('u.*', 'p.owner_user_id')
+            ->where('u.id', $validated['user_id'])
+            ->first();
 
         if (! $tagihanExists || ! $user) {
             return response()->json(['status' => 422, 'message' => 'Tagihan atau user tidak valid.'], 422);
+        }
+
+        if (! $this->isSuperAdmin()) {
+            $tagihanOwned = DB::table('tagihan')
+                ->where('id', $validated['tagihan_id'])
+                ->where('created_by', Auth::id())
+                ->exists();
+
+            if (! $tagihanOwned) {
+                return response()->json(['status' => 422, 'message' => 'Tagihan bukan milik Anda.'], 422);
+            }
+
+            if ((int) ($user->owner_user_id ?? 0) !== (int) Auth::id()) {
+                return response()->json(['status' => 422, 'message' => 'User bukan pelanggan Anda.'], 422);
+            }
         }
 
         // Validate that assigned user is linked to a pelanggan (idPersonal must exist in pelanggan table).

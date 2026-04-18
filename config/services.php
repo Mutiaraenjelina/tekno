@@ -37,4 +37,13 @@ return [
         'is_production' => env('MIDTRANS_IS_PRODUCTION', false),
     ],
 
+    'whatsapp' => [
+        'enabled' => env('WHATSAPP_ENABLED', false),
+        'provider' => env('WHATSAPP_PROVIDER', 'fonnte'),
+        'base_url' => env('WHATSAPP_BASE_URL', 'https://api.fonnte.com/send'),
+        'token' => env('WHATSAPP_TOKEN'),
+        'country_code' => env('WHATSAPP_COUNTRY_CODE', '62'),
+        'timeout' => env('WHATSAPP_TIMEOUT', 15),
+    ],
+
 ];

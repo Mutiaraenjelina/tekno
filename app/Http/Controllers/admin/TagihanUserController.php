@@ -4,21 +4,88 @@ namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class TagihanUserController extends Controller
 {
+    private function isSuperAdmin(): bool
+    {
+        return Auth::check() && (string) Auth::user()->roleId === '1';
+    }
+
+    private function ownedPelangganScope()
+    {
+        $query = DB::table('pelanggan as p');
+
+        if (Auth::check() && (string) Auth::user()->roleId === '2') {
+            $query->where('p.owner_user_id', Auth::id());
+        }
+
+        return $query;
+    }
+
+    private function createGuestUserForPelanggan(int $pelangganId, string $nama): void
+    {
+        $baseUsername = 'guest_' . $pelangganId . '_' . Str::slug($nama, '_');
+        $username = Str::limit($baseUsername, 40, '');
+        $counter = 1;
+
+        while (DB::table('users')->where('username', $username)->exists()) {
+            $username = Str::limit($baseUsername, 35, '') . '_' . $counter;
+            $counter++;
+        }
+
+        $email = 'guest' . $pelangganId . '@guest.tapatupa.local';
+
+        DB::table('users')->insert([
+            'roleId' => 3,
+            'idJenisUser' => 2,
+            'idPersonal' => $pelangganId,
+            'username' => $username,
+            'email' => $email,
+            'password' => Hash::make(Str::random(24)),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    private function ensureGuestUsersForExistingPelanggan(): void
+    {
+        $pelangganWithoutGuest = $this->ownedPelangganScope()
+            ->leftJoin('users as u', function ($join) {
+                $join->on('u.idPersonal', '=', 'p.id')
+                    ->where('u.roleId', '=', 3);
+            })
+            ->whereNull('u.id')
+            ->select('p.id', 'p.nama')
+            ->get();
+
+        foreach ($pelangganWithoutGuest as $pelanggan) {
+            $this->createGuestUserForPelanggan((int) $pelanggan->id, (string) $pelanggan->nama);
+        }
+    }
+
     public function index()
     {
+        $this->ensureGuestUsersForExistingPelanggan();
+
         if (! Schema::hasTable('tagihan_user')) {
             return redirect()->route('Dashboard.index')->with('error', 'Tabel tagihan_user belum tersedia.');
         }
 
         $assignments = DB::table('tagihan_user as tu')
             ->leftJoin('users as u', 'u.id', '=', 'tu.user_id')
+            ->leftJoin('pelanggan as p', 'p.id', '=', 'u.idPersonal')
             ->leftJoin('tagihan as t', 't.id', '=', 'tu.tagihan_id')
             ->leftJoin('transaksi as tr', 'tr.id', '=', 'tu.payment_id')
+            ->when(!$this->isSuperAdmin(), function ($query) {
+                $query->where('p.owner_user_id', Auth::id())
+                    ->where('t.created_by', Auth::id());
+            })
             ->select(
                 'tu.id',
                 'tu.tagihan_id',
@@ -27,6 +94,7 @@ class TagihanUserController extends Controller
                 'tu.payment_id',
                 'u.username',
                 'u.email',
+                'p.no_wa',
                 't.nama_tagihan',
                 't.nominal',
                 't.jatuh_tempo',
@@ -37,6 +105,9 @@ class TagihanUserController extends Controller
             ->get();
 
         $tagihanOptions = DB::table('tagihan')
+            ->when(!$this->isSuperAdmin(), function ($query) {
+                $query->where('created_by', Auth::id());
+            })
             ->select('id', 'nama_tagihan', 'nominal', 'jatuh_tempo')
             ->orderByDesc('id')
             ->limit(300)
@@ -44,15 +115,52 @@ class TagihanUserController extends Controller
 
         $userOptions = DB::table('users as u')
             ->leftJoin('pelanggan as p', 'p.id', '=', 'u.idPersonal')
+            ->when(!$this->isSuperAdmin(), function ($query) {
+                $query->where('p.owner_user_id', Auth::id());
+            })
             ->select('u.id', 'u.username', 'u.email', 'p.nama as namaPelanggan')
+            ->where('u.roleId', 3)
             ->orderBy('u.username')
             ->get();
 
-        return view('admin.TagihanDanPembayaran.TagihanUser.index', compact('assignments', 'tagihanOptions', 'userOptions'));
+        $pelangganBelumDitagih = DB::table('users as u')
+            ->leftJoin('pelanggan as p', 'p.id', '=', 'u.idPersonal')
+            ->leftJoin('tagihan_user as tu', 'tu.user_id', '=', 'u.id')
+            ->where('u.roleId', 3)
+            ->when(!$this->isSuperAdmin(), function ($query) {
+                $query->where('p.owner_user_id', Auth::id());
+            })
+            ->whereNull('tu.id')
+            ->select('u.id', 'u.username', 'p.nama as namaPelanggan', 'p.no_wa')
+            ->orderByDesc('u.id')
+            ->limit(10)
+            ->get();
+
+        $assignmentBelumBayarCount = DB::table('tagihan_user')
+            ->where('status', 'belum')
+            ->count();
+
+        $pembayaranSuksesHariIniCount = DB::table('transaksi')
+            ->whereIn(DB::raw('LOWER(status)'), ['success', 'settlement', 'capture'])
+            ->whereDate('updated_at', today())
+            ->count();
+
+        return view('admin.TagihanDanPembayaran.TagihanUser.index', compact(
+            'assignments',
+            'tagihanOptions',
+            'userOptions',
+            'pelangganBelumDitagih',
+            'assignmentBelumBayarCount',
+            'pembayaranSuksesHariIniCount'
+        ));
     }
 
     public function store(Request $request)
     {
+        $request->merge([
+            'payment_id' => $request->filled('payment_id') ? $request->input('payment_id') : null,
+        ]);
+
         $validated = $request->validate([
             'tagihan_id' => ['nullable', 'integer', 'required_without:tagihan_id_manual'],
             'tagihan_id_manual' => ['nullable', 'integer', 'required_without:tagihan_id'],
@@ -106,6 +214,10 @@ class TagihanUserController extends Controller
             return redirect()->route('TagihanUser.index')->with('error', 'Assignment tidak ditemukan.');
         }
 
+        $request->merge([
+            'payment_id' => $request->filled('payment_id') ? $request->input('payment_id') : null,
+        ]);
+
         $validated = $request->validate([
             'status' => ['required', 'in:belum,sudah'],
             'payment_id' => ['nullable', 'integer', 'exists:transaksi,id'],
@@ -137,7 +249,11 @@ class TagihanUserController extends Controller
             ->where('id', $tagihanId)
             ->first();
 
-        $userData = DB::table('users')->select('idPersonal')->where('id', $userId)->first();
+        $userData = DB::table('users as u')
+            ->leftJoin('pelanggan as p', 'p.id', '=', 'u.idPersonal')
+            ->select('u.idPersonal', 'p.owner_user_id')
+            ->where('u.id', $userId)
+            ->first();
 
         if (! $tagihanData) {
             return 'Tagihan tidak ditemukan. Periksa ID tagihan yang dipilih/diinput.';
@@ -149,6 +265,16 @@ class TagihanUserController extends Controller
 
         if (! DB::table('pelanggan')->where('id', $userData->idPersonal)->exists()) {
             return 'User tidak terkait dengan data pelanggan.';
+        }
+
+        if (! $this->isSuperAdmin()) {
+            if ((int) $tagihanData->created_by !== (int) Auth::id()) {
+                return 'Tagihan tidak termasuk data milik Anda.';
+            }
+
+            if ((int) ($userData->owner_user_id ?? 0) !== (int) Auth::id()) {
+                return 'User tidak termasuk data pelanggan milik Anda.';
+            }
         }
 
         return null;

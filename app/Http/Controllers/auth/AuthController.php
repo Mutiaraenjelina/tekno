@@ -17,6 +17,10 @@ class AuthController extends Controller
 
     public function index()
     {
+        if (Auth::check()) {
+            return redirect()->route($this->redirectRouteForUser(Auth::user()));
+        }
+
         return view('auth.login');
     }
 
@@ -28,42 +32,41 @@ class AuthController extends Controller
     public function proses_register(Request $request)
     {
         $validated = $request->validate([
-            'jenis_tagihan' => ['required', 'in:rutin,non_rutin'],
+            'nama_lengkap' => ['required', 'string', 'max:255'],
+            'nama_usaha' => ['required', 'string', 'max:255'],
+            'no_telepon' => ['required', 'string', 'max:30'],
+            'jenis_usaha' => ['required', 'string', 'max:100'],
+            'jenis_tagihan' => ['required', 'in:rutin,non-rutin'],
             'username' => ['required', 'string', 'max:255', 'unique:users,username'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6', 'confirmed'],
-            'nama' => ['required_if:jenis_tagihan,rutin', 'nullable', 'string', 'max:255'],
-            'no_wa' => ['required_if:jenis_tagihan,rutin', 'nullable', 'string', 'max:30'],
         ], [
-            'jenis_tagihan.required' => 'Silakan pilih jenis tagihan usaha.',
-            'jenis_tagihan.in' => 'Jenis tagihan tidak valid.',
-            'nama.required_if' => 'Nama pelanggan wajib diisi untuk usaha tagihan rutin.',
-            'no_wa.required_if' => 'No WhatsApp wajib diisi untuk usaha tagihan rutin.',
+            'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
+            'nama_usaha.required' => 'Nama usaha wajib diisi.',
+            'no_telepon.required' => 'Nomor telepon wajib diisi.',
+            'jenis_usaha.required' => 'Jenis usaha wajib dipilih.',
+            'jenis_tagihan.required' => 'Jenis tagihan wajib dipilih.',
             'password.confirmed' => 'Konfirmasi password tidak sesuai.',
         ]);
 
         DB::beginTransaction();
 
         try {
-            $namaPelanggan = $validated['jenis_tagihan'] === 'rutin'
-                ? $validated['nama']
-                : $validated['username'];
-
-            $noWaPelanggan = $validated['jenis_tagihan'] === 'rutin'
-                ? $validated['no_wa']
-                : '-';
-
             // users.idPersonal pada schema aktif wajib terisi.
             $pelangganId = DB::table('pelanggan')->insertGetId([
-                'nama' => $namaPelanggan,
-                'no_wa' => $noWaPelanggan,
+                'nama' => $validated['nama_lengkap'],
+                'no_wa' => $validated['no_telepon'],
+                'nama_usaha' => $validated['nama_usaha'],
+                'jenis_usaha' => $validated['jenis_usaha'],
+                'jenis_tagihan' => $validated['jenis_tagihan'],
+                'is_umkm_verified' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
             User::create([
-                'roleId' => 3,
-                'idJenisUser' => $validated['jenis_tagihan'] === 'rutin' ? 1 : 2,
+                'roleId' => 2,
+                'idJenisUser' => 1,
                 'idPersonal' => $pelangganId,
                 'username' => $validated['username'],
                 'email' => $validated['email'],
@@ -97,6 +100,8 @@ class AuthController extends Controller
 
         if (Auth::attempt($kredensil)) {
             \Log::info('Auth::attempt succeeded');
+
+            $request->session()->regenerate();
             
             $user = Auth::user();
             \Log::info('Got user', ['user_id' => $user->id, 'username' => $user->username]);
@@ -113,24 +118,7 @@ class AuthController extends Controller
             $request->session()->put('user_role', $userRole);
             \Log::info('Session data stored', ['session_id' => $request->session()->getId()]);
 
-            //dd($userRole);
-
-            if ($user->roleId == '1') {
-                //dd($userRole);
-                \Log::info('Redirecting Super Admin to Dashboard.index');
-                return redirect()->route('Dashboard.index'); 
-            }elseif ($user->roleId == '2') {
-                \Log::info('Redirecting Admin to Dashboard.index');
-                //return redirect()->intended('admin');
-                return redirect()->route('Dashboard.index');
-            }elseif ($user->roleId == '3') {
-                \Log::info('Redirecting User to user.dashboard.index');
-                return redirect()->route('user.dashboard.index');
-            } 
-            
-
-            \Log::info('No role match, redirecting to /');
-            return redirect()->intended('/');
+            return redirect()->route('login.redirect');
         }
 
         \Log::info('Auth::attempt failed');
@@ -144,5 +132,31 @@ class AuthController extends Controller
         $request->session()->flush();
         Auth::logout(); // user must logout before redirect them
         return redirect()->guest('login');
+    }
+
+    public function redirectAfterLogin()
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        $redirectRoute = $this->redirectRouteForUser($user);
+
+        return view('auth.login-redirect', [
+            'user' => $user,
+            'redirectRoute' => $redirectRoute,
+            'redirectUrl' => route($redirectRoute),
+        ]);
+    }
+
+    private function redirectRouteForUser(User $user): string
+    {
+        return match ((string) $user->roleId) {
+            '1', '2' => 'Dashboard.index',
+            '3' => 'user.dashboard.index',
+            default => 'logout',
+        };
     }
 }

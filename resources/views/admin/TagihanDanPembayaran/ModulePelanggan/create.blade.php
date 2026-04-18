@@ -66,24 +66,10 @@
                     </div>
 
                     <div class="col-12">
-                        <label class="form-label fw-medium">Hubungkan ke Akun User (Opsional)</label>
-                        <select name="user_ids[]" class="form-select @error('user_ids') is-invalid @enderror" multiple>
-                            @foreach($userOptions as $user)
-                                <option value="{{ $user->id }}" {{ in_array($user->id, old('user_ids', [])) ? 'selected' : '' }}>
-                                    {{ $user->username }} ({{ $user->email ?? '-' }})
-                                    @if($user->idPersonal)
-                                        - Terhubung ke pelanggan #{{ $user->idPersonal }}
-                                    @endif
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('user_ids')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
-                        @error('user_ids.*')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
-                        <small class="text-muted d-block mt-1">Tips: tekan Ctrl (Windows) untuk memilih lebih dari satu user.</small>
+                        <div class="alert alert-info mb-0" role="alert">
+                            <i class="ti ti-info-circle me-2"></i>
+                            Sistem akan otomatis membuat akun login pelanggan (username & password awal) untuk pelanggan ini.
+                        </div>
                     </div>
 
                     <div class="col-12">
@@ -117,7 +103,7 @@
                 </div>
                 <div class="alert alert-info small mb-0">
                     <i class="ti ti-info-circle me-2"></i>
-                    Nomor akan digunakan untuk mengirim notifikasi tagihan dan pengingat pembayaran
+                    Nomor akan digunakan untuk mengirim kredensial akun pelanggan via WhatsApp.
                 </div>
             </div>
         </div>

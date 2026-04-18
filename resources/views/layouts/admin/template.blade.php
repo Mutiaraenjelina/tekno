@@ -1,3 +1,15 @@
+@php
+    if (file_exists(public_path('admin_resources/assets/images/user-general/sipayda_logo.png'))) {
+        $brandLogo = 'admin_resources/assets/images/user-general/sipayda_logo.png';
+    } elseif (file_exists(public_path('admin_resources/assets/images/user-general/sipayda_logo.jpg'))) {
+        $brandLogo = 'admin_resources/assets/images/user-general/sipayda_logo.jpg';
+    } elseif (file_exists(public_path('admin_resources/assets/images/user-general/sipayda_logo.jpeg'))) {
+        $brandLogo = 'admin_resources/assets/images/user-general/sipayda_logo.jpeg';
+    } else {
+        $brandLogo = 'admin_resources/assets/images/user-general/patupa_logo_white_bg.png';
+    }
+@endphp
+
 <!DOCTYPE html>
 <html lang="en" dir="ltr" data-nav-layout="vertical" data-theme-mode="light" data-header-styles="light"
     data-width="fullwidth" data-menu-styles="light" data-toggled="close" loader="enable" style="--primary-rgb: 35, 144, 190;">
@@ -102,6 +114,25 @@
             }
         });
     </script>
+
+    <style>
+        .brand-logo-fit {
+            width: 232px;
+            height: 78px;
+            object-fit: contain;
+            object-position: center;
+            display: block;
+            mix-blend-mode: multiply;
+            filter: contrast(1.08) saturate(1.06);
+        }
+
+        .main-sidebar-header .header-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 94px;
+        }
+    </style>
 </head>
 
 <body>
@@ -125,7 +156,7 @@
                     <!-- Start::header-element -->
                     <div class="header-element">
                         <div class="horizontal-logo">
-                            <a href="index.html" class="header-logo">
+                            <div class="header-logo">
                                 <img src="{{ asset('admin_resources/assets/images/brand-logos/desktop-logo.png') }}"
                                     alt="logo" class="desktop-logo">
                                 <img src="{{ asset('admin_resources/assets/images/brand-logos/toggle-logo.png') }}"
@@ -134,7 +165,7 @@
                                     alt="logo" class="desktop-dark">
                                 <img src="{{ asset('admin_resources/assets/images/brand-logos/toggle-dark.png') }}"
                                     alt="logo" class="toggle-dark">
-                            </a>
+                            </div>
                         </div>
                     </div>
                     <!-- End::header-element -->
@@ -218,16 +249,16 @@
 
             <!-- Start::main-sidebar-header -->
             <div class="main-sidebar-header">
-                <a href="index.html" class="header-logo">
-                    <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
-                        alt="logo" class="desktop-logo">
-                    <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
-                        alt="logo" class="toggle-dark">
-                    <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
-                        alt="logo" class="desktop-dark">
-                    <img src="{{ asset('admin_resources/assets/images/user-general/patupa_logo_white_bg.png') }}"
-                        alt="logo" class="toggle-logo">
-                </a>
+                <div class="header-logo">
+                    <img src="{{ asset($brandLogo) }}"
+                        alt="logo" class="desktop-logo brand-logo-fit">
+                    <img src="{{ asset($brandLogo) }}"
+                        alt="logo" class="toggle-dark brand-logo-fit">
+                    <img src="{{ asset($brandLogo) }}"
+                        alt="logo" class="desktop-dark brand-logo-fit">
+                    <img src="{{ asset($brandLogo) }}"
+                        alt="logo" class="toggle-logo brand-logo-fit">
+                </div>
             </div>
             <!-- End::main-sidebar-header -->
 

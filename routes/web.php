@@ -41,10 +41,16 @@ Route::get('/home', function () {
 });
 
 Route::get('login', 'App\Http\Controllers\auth\AuthController@index')->name('login');
+Route::get('login/redirect', 'App\Http\Controllers\auth\AuthController@redirectAfterLogin')->name('login.redirect')->middleware('auth');
 Route::get('register', 'App\Http\Controllers\auth\AuthController@register')->name('register');
 Route::post('proses_register', 'App\Http\Controllers\auth\AuthController@proses_register')->name('proses_register');
 Route::post('proses_login', 'App\Http\Controllers\auth\AuthController@proses_login')->name('proses_login');
 Route::get('logout', 'App\Http\Controllers\auth\AuthController@logout')->name('logout');
+
+// Public Payment Routes (guest via link/QR)
+Route::get('/payment/{tagihanId}/{userId}', [App\Http\Controllers\PaymentPageController::class, 'show'])->name('PaymentPage.show');
+Route::post('/payment/{tagihanId}/{userId}/create', [App\Http\Controllers\PaymentPageController::class, 'create'])->name('PaymentPage.create');
+Route::get('/payment/status/{tagihanId}/{userId}', [App\Http\Controllers\PaymentPageController::class, 'status'])->name('PaymentPage.status');
 
 Route::middleware(['auth'])->group(function () {
     // User Dashboard Route
@@ -61,8 +67,7 @@ Route::middleware(['auth'])->group(function () {
 
     // User Pelanggan Profile Route
     Route::get('/profil/pelanggan', [App\Http\Controllers\user\PelangganController::class, 'index'])->name('user.pelanggan.index');
+    Route::put('/profil/pelanggan/akun', [App\Http\Controllers\user\PelangganController::class, 'updateAccount'])->name('user.pelanggan.account.update');
+    Route::put('/profil/pelanggan/password', [App\Http\Controllers\user\PelangganController::class, 'updatePassword'])->name('user.pelanggan.password.update');
 
-    // Payment Page Routes
-    Route::get('/payment/{tagihanId}/{userId}', [App\Http\Controllers\PaymentPageController::class, 'show'])->name('PaymentPage.show');
-    Route::post('/payment/{tagihanId}/{userId}/create', [App\Http\Controllers\PaymentPageController::class, 'create'])->name('PaymentPage.create');
 });
