@@ -312,8 +312,8 @@
         <!-- Footer Start -->
         <footer class="footer mt-auto py-3 bg-white text-center">
             <div class="container">
-                <span class="text-muted"> Copyright © <span id="year"></span> <a href="https://bkad.taputkab.go.id/"
-                        class="fw-medium text-primary">Badan Keuangan Dan Aset Daerah Kabupaten Tapanuli Utara</a>
+                <span class="text-muted"> Copyright © <span id="year"></span> <a href="#"
+                        class="fw-medium text-primary">SIPAYDA</a>
                 </span>
             </div>
         </footer>

@@ -1422,9 +1422,7 @@
                             <p class="fw-medium mb-3"><img height="40px"
                             src="{{ asset($brandLogo) }}" alt=""></p>
                                 <p class="mb-2 op-6 fw-normal">
-                                    Badan Keuangan dan Aset Daerah bertanggungjawab atas penganggaran APBD,
-                                    penatausahaan keuangan, pengelolaan aset daerah dan penyusunan laporan serta
-                                    pertanggungjawaban pelaksanaan APBD secara efektif, efesien dan akuntabel
+                                    SIPAYDA adalah platform digital untuk pengelolaan pembayaran dan aset yang dirancang untuk memberikan kemudahan dalam transaksi dan pengelolaan keuangan daerah secara efektif, efisien dan akuntabel.
                                 </p>
                             </div>
                         </div>
