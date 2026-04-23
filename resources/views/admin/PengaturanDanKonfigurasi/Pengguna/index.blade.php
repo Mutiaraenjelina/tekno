@@ -1,5 +1,16 @@
 @extends('layouts.admin.template')
 @section('content')
+@php
+    $biznetEndpoint = (string) config('filesystems.disks.biznet.endpoint', '');
+    $biznetBucket = (string) config('filesystems.disks.biznet.bucket', '');
+    $localImageBase = rtrim(url('storage/images'), '/');
+
+    if ($biznetEndpoint !== '' && $biznetBucket !== '') {
+        $profileImageBaseUrl = rtrim($biznetEndpoint, '/') . '/' . trim($biznetBucket, '/') . '/images';
+    } else {
+        $profileImageBaseUrl = $localImageBase;
+    }
+@endphp
 
 <script>
     //-------------------------------------------------------------------------------------------------
@@ -28,7 +39,7 @@
                     }).show();
                 } else {
                     var fotoPath = response.user.fotoUser;
-                    var fileFoto = {!! json_encode(Storage::disk('biznet')->url('/images' )) !!};
+                    var fileFoto = {!! json_encode($profileImageBaseUrl) !!};
 
                     var no_photo = {!! json_encode(url('admin_resources/assets/images/user-general/no_photo_profile_color.png')) !!};
                     
@@ -158,7 +169,7 @@
                                         <div class="d-flex">
                                             @if($uS->fotoUser)
                                                 <span class="avatar avatar-md avatar-square bg-light"><img
-                                                        src="{{Storage::disk('biznet')->url('images/' . $uS->fotoUser)}}"
+                                                        src="{{ rtrim($profileImageBaseUrl, '/') . '/' . ltrim($uS->fotoUser, '/') }}"
                                                         class="w-100 h-100" alt="..."></span>
                                             @else
                                                 <span class="avatar avatar-md avatar-square bg-light"><img

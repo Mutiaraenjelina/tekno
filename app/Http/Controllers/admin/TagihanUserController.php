@@ -245,7 +245,7 @@ class TagihanUserController extends Controller
     private function validateTagihanUserRelation(int $tagihanId, int $userId): ?string
     {
         $tagihanData = DB::table('tagihan')
-            ->select('id')
+            ->select('id', 'created_by')
             ->where('id', $tagihanId)
             ->first();
 
@@ -268,7 +268,7 @@ class TagihanUserController extends Controller
         }
 
         if (! $this->isSuperAdmin()) {
-            if ((int) $tagihanData->created_by !== (int) Auth::id()) {
+            if ((int) ($tagihanData->created_by ?? 0) !== (int) Auth::id()) {
                 return 'Tagihan tidak termasuk data milik Anda.';
             }
 

@@ -17,6 +17,22 @@
 </div>
 <!-- Page Header Close -->
 
+@php
+    $currentUser = auth()->user();
+    $displayName = $currentUser?->username ?? 'Pengguna';
+@endphp
+
+<div class="row mb-3">
+    <div class="col-xl-12">
+        <div class="alert alert-primary d-flex align-items-center justify-content-between mb-0" role="alert">
+            <div>
+                <span class="fw-bold fs-3">{{ $displayName }}</span>
+            </div>
+            <span class="badge bg-primary-transparent text-primary">Session Aktif</span>
+        </div>
+    </div>
+</div>
+
 <!-- Summary Cards Row -->
 <div class="row">
     <div class="col-xl-3 col-lg-6 col-md-6 mb-3">

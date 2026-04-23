@@ -4,6 +4,8 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -46,6 +48,38 @@ class User extends Authenticatable implements JWTSubject
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    /**
+     * Get the pelanggan that this user belongs to
+     */
+    public function pelanggan(): BelongsTo
+    {
+        return $this->belongsTo(Pelanggan::class, 'idPersonal', 'id');
+    }
+
+    /**
+     * Get all tagihan created by this user
+     */
+    public function tagihanCreated(): HasMany
+    {
+        return $this->hasMany(Tagihan::class, 'created_by');
+    }
+
+    /**
+     * Get all tagihan_user assignments for this user
+     */
+    public function tagihanUsers(): HasMany
+    {
+        return $this->hasMany(TagihanUser::class, 'user_id');
+    }
+
+    /**
+     * Get all transactions for this user
+     */
+    public function transaksi(): HasMany
+    {
+        return $this->hasMany(Transaksi::class, 'user_id');
+    }
 
     public function getRoleNameAttribute(): string
     {

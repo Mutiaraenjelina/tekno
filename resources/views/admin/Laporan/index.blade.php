@@ -66,6 +66,20 @@
                             <option value="custom" {{ $periode === 'custom' ? 'selected' : '' }}>Custom</option>
                         </select>
                     </div>
+                    @if($isSuperAdmin ?? false)
+                        <div class="col-md-3">
+                            <label class="form-label fw-medium">Admin UMKM</label>
+                            <select name="admin_user_id" class="form-select">
+                                <option value="">Semua Admin UMKM</option>
+                                @foreach(($adminOptions ?? []) as $admin)
+                                    <option value="{{ $admin->id }}" {{ (string)($adminUserId ?? '') === (string)$admin->id ? 'selected' : '' }}>
+                                        {{ $admin->username }}
+                                        @if(!empty($admin->nama_usaha)) - {{ $admin->nama_usaha }} @endif
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
                     <div class="col-md-3">
                         <label class="form-label fw-medium">Dari</label>
                         <input type="date" name="start_date" class="form-control" value="{{ $startDate }}">
@@ -95,6 +109,9 @@
                     <tr>
                         <th>Tanggal</th>
                         <th>Order ID</th>
+                        @if($isSuperAdmin ?? false)
+                            <th>Admin UMKM</th>
+                        @endif
                         <th>Nama Penerima</th>
                         <th>Tagihan</th>
                         <th>Metode</th>
@@ -107,6 +124,9 @@
                         <tr>
                             <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y H:i') }}</td>
                             <td>{{ $item->order_id }}</td>
+                            @if($isSuperAdmin ?? false)
+                                <td>{{ $item->admin_umkm_username ?? '-' }}</td>
+                            @endif
                             <td>{{ $item->username ?? '-' }}</td>
                             <td>{{ $item->nama_tagihan ?? '-' }}</td>
                             <td>{{ ucfirst($item->metode ?? '-') }}</td>
@@ -119,7 +139,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">Belum ada data transaksi pada periode ini.</td>
+                            <td colspan="{{ ($isSuperAdmin ?? false) ? 8 : 7 }}" class="text-center py-4 text-muted">Belum ada data transaksi pada periode ini.</td>
                         </tr>
                     @endforelse
                 </tbody>
